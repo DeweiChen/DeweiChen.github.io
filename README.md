@@ -1,38 +1,48 @@
 # about-dw
 
-陳德維 De-Wei Chen 的個人履歷網站，有兩種可切換的排版：
+Personal resume site of 陳德維 De-Wei Chen — live at **https://deweichen.github.io**.
 
-- **經典（Classic）**：穩重、好讀的履歷，`Cmd/Ctrl + P` 可直接輸出白底 PDF。
-- **沉浸（Immersive）**：Three.js 粒子名字，游標經過會推散粒子；捲動時粒子散成星空，經歷以玻璃卡片漂浮呈現。
-  切換時 2D 履歷卡片會「飛進」3D 空間化成粒子，切回時粒子再收回卡片位置（致敬 Vr2dDisplay）。
+It has two switchable layouts:
 
-網址參數：`?mode=3d` 直接進入沉浸模式，`?lang=zh|en` 指定語言。
+- **Classic** — a calm, readable resume. `Cmd/Ctrl + P` prints a dedicated A4 layout modelled on the original PDF resume.
+- **Immersive** — the name is drawn by a 3D Gaussian Splatting–style particle cloud (Three.js) that ripples away from the cursor. Scrolling dissolves it into a star field while experience floats past on glass cards.
+  Switching layouts plays a 2D ↔ 3D transition: the resume card peels off into particles, and collapses back onto the card on the way out — a nod to Vr2dDisplay (2D apps in a 3D scene).
 
-## 技術
+URL parameters: `?mode=3d` opens the immersive layout directly, `?lang=zh|en` picks the language.
+
+## Tech stack
 
 Vite · React 19 · TypeScript · Tailwind CSS v4 · shadcn/ui · React Three Fiber · motion · pnpm
 
-## 開發
+## Development
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-## 修改內容
+```bash
+pnpm build && pnpm preview
+```
 
-所有文字都在 [`src/data/resume.ts`](src/data/resume.ts)（中英兩份），兩種排版都只讀這份資料。
-PDF 中標示 `(Link)` 的項目（Viveport Cloud Portal、OvOy）網址請填入檔案頂端的 `VIVEPORT_CLOUD`、`OVOY`。
+## Editing content
 
-## 部署到 GitHub Pages（User site）
+All text lives in [`src/data/resume.ts`](src/data/resume.ts) (Chinese and English); every layout, including the print layout, reads from it.
 
-1. 在 GitHub 建立名為 `<你的帳號>.github.io` 的 repo。
-2. 推上 `main` 分支：
-   ```bash
-   git init && git add -A && git commit -m "Initial commit"
-   git branch -M main
-   git remote add origin git@github.com:<你的帳號>/<你的帳號>.github.io.git
-   git push -u origin main
-   ```
-3. Repo → Settings → Pages → Source 選 **GitHub Actions**。
-4. 之後每次推到 `main`，`.github/workflows/deploy.yml` 會自動建置並發布到 `https://<你的帳號>.github.io`。
+| What | Where |
+| --- | --- |
+| Resume text, links, contact | `src/data/resume.ts` |
+| Particle effect (cursor push, glow) | `src/immersive/splat.vert`, `src/immersive/SplatPortrait.tsx` |
+| Print layout | `src/print/PrintResume.tsx`, `src/print/print.css` |
+| Photo and company logos for print | `src/assets/print/` |
+
+## Deployment
+
+Every push to `main` builds and deploys to GitHub Pages via [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+The repository's **Settings → Pages → Source** must be set to **GitHub Actions**.
+
+## License
+
+The source code is released under the [MIT License](LICENSE).
+
+The personal content — resume text, the photo, and the company logos in `src/assets/print/` — is not covered by that license. The logos are trademarks of their respective owners.
