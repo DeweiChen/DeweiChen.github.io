@@ -36,6 +36,7 @@ export interface Resume {
     classic: string
     immersive: string
     hint: string
+    hintTouch: string
     print: string
     contact: string
     scroll: string
@@ -234,6 +235,7 @@ const en: Resume = {
     classic: 'Classic',
     immersive: 'Immersive',
     hint: 'Move your cursor through the particles',
+    hintTouch: 'Drag your finger across the particles',
     print: 'Print / PDF',
     contact: 'Get in touch',
     scroll: 'Scroll',
@@ -419,6 +421,7 @@ const zh: Resume = {
     classic: '經典',
     immersive: '沉浸',
     hint: '移動游標穿過粒子試試看',
+    hintTouch: '用手指劃過粒子試試看',
     print: '列印 / PDF',
     contact: '聯絡我',
     scroll: '向下捲動',

@@ -153,9 +153,11 @@ export function SplatPortrait({ count, cardRect, morphTarget, onMorphDone }: Spl
       r.height * sy,
     )
 
-    // Fit the name into the upper-middle of the viewport.
+    // Fit the name into the upper-middle of the viewport; on portrait phones lift it
+    // into the top third so the hero caption below never overlaps it.
     const scale = Math.min((viewport.width * 0.86) / aspect, viewport.height * 0.42)
-    u.uPortrait.value = [scale, viewport.height * 0.08, 0]
+    const portraitScreen = viewport.width / viewport.height < 0.8
+    u.uPortrait.value = [scale, viewport.height * (portraitScreen ? 0.2 : 0.08), 0]
     u.uRadius.value = Math.max(0.5, scale * 0.3)
 
     const step = dt / MORPH_SECONDS

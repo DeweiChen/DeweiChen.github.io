@@ -69,6 +69,8 @@ function Heading({ children }: { children: ReactNode }) {
 }
 
 /** DOM content layered over the particle canvas. Real text, so it stays selectable and indexable. */
+const coarsePointer = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+
 export function FloatingPanels({ visible }: { visible: boolean }) {
   const { t } = useLang()
 
@@ -77,23 +79,25 @@ export function FloatingPanels({ visible }: { visible: boolean }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: visible ? 1 : 0 }}
       transition={{ duration: 0.6, delay: visible ? 0.9 : 0 }}
-      className={cn('relative z-10', !visible && 'pointer-events-none')}
+      className={cn('relative z-10 overflow-x-clip', !visible && 'pointer-events-none')}
     >
       {/* First screen belongs to the particles; only a caption and the stats sit at the bottom. */}
-      <section className="pointer-events-none flex h-svh flex-col items-center justify-end px-4 pb-10 text-center">
-        <p className="text-base text-foreground/90 sm:text-lg">{t.headline}</p>
+      <section className="pointer-events-none flex h-svh flex-col items-center justify-end px-4 pb-8 text-center sm:pb-10">
+        <p className="text-sm text-foreground/90 sm:text-lg">{t.headline}</p>
         <p className="mt-1 text-sm text-muted-foreground">{t.location}</p>
         <SocialLinks className="pointer-events-auto mt-3 text-muted-foreground" iconClassName="size-4" />
-        <dl className="mt-6 flex flex-wrap justify-center gap-x-8 gap-y-3">
+        <dl className="mt-5 grid grid-cols-4 gap-x-4 sm:mt-6 sm:flex sm:gap-x-8">
           {t.stats.map((s) => (
             <div key={s.label}>
               <dt className="sr-only">{s.label}</dt>
-              <dd className="text-2xl font-semibold tabular-nums">{s.value}</dd>
-              <dd className="text-xs text-muted-foreground">{s.label}</dd>
+              <dd className="text-xl font-semibold tabular-nums sm:text-2xl">{s.value}</dd>
+              <dd className="text-[11px] leading-tight text-muted-foreground sm:text-xs">{s.label}</dd>
             </div>
           ))}
         </dl>
-        <p className="mt-8 text-xs tracking-widest text-muted-foreground/80">{t.labels.hint}</p>
+        <p className="mt-6 text-xs tracking-widest text-muted-foreground/80 sm:mt-8">
+          {coarsePointer ? t.labels.hintTouch : t.labels.hint}
+        </p>
         <ChevronDown className="mt-2 size-5 animate-bounce text-muted-foreground" aria-label={t.labels.scroll} />
       </section>
 

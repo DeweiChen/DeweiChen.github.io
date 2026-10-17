@@ -143,4 +143,9 @@
     @apply font-sans;
     color-scheme: dark;
     }
+  /* Tilted cards and the 2D <-> 3D transition transform past the viewport edge;
+     clip (not hidden) so no horizontal scrollbar appears and sticky/fixed still work. */
+  html, body {
+    overflow-x: clip;
+    }
 }
