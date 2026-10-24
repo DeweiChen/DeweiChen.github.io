@@ -1,0 +1,212 @@
+{
+  "profile": {
+    "name": "陳德維",
+    "altName": "De-Wei Chen",
+    "fullName": "陳德維 (De-Wei Chen)",
+    "headline": "產品團隊負責人 · 全端工程師",
+    "location": "台灣 台北"
+  },
+  "stats": {
+    "mobile": "年 行動開發",
+    "vr": "年 VR / XR",
+    "backend": "年 後端",
+    "cost": "雲端成本降幅"
+  },
+  "about": [
+    { "lead": "產品團隊負責人暨全端工程師", "text": "，擁有 10 年以上行動開發、7 年以上 VR、3 年以上後端經驗；具工程管理經驗，曾帶領最多 9 人的跨職能團隊。" },
+    { "lead": "績效頂尖：", "text": "進入 HTC 第二年，即在 70 人部門中績效排名第一。" },
+    { "lead": "AI 驅動的問題解決者：", "text": "積極運用 AI 輔助工作流程，主導開發方向並解決複雜的工程挑戰。" }
+  ],
+  "skills": {
+    "ai": { "group": "AI Agents", "items": ["Claude Code", "GitHub Copilot", "Antigravity", "Cursor"] },
+    "mobile": { "group": "行動開發", "items": ["Android", "iOS", "Unity3D", "Flutter", "React Native"] },
+    "rendering": { "group": "3D / 渲染", "items": ["Unity", "Three.js", "3D Gaussian Splatting (3DGS)", "Apple Vision Pro", "Apple RoomPlan"] },
+    "backend": { "group": "後端", "items": ["Golang", "MongoDB", "Redis", "Docker", "CI/CD", "RESTful API 設計 (CRUD)", "OpenAPI 規範"] },
+    "architecture": { "group": "架構", "items": ["Clean Architecture", "領域驅動設計 (DDD)", "事件驅動系統"] },
+    "leadership": { "group": "領導力", "items": ["工程管理", "跨職能團隊領導", "技術指導", "敏捷 / Scrum 交付", "雲端成本優化"] }
+  },
+  "experience": {
+    "freelance": {
+      "name": "獨立接案",
+      "roles": {
+        "freelance": {
+          "title": "自由軟體工程師",
+          "bullets": [
+            "以個人開發者身分獨立完成多個客戶專案的端到端交付，涵蓋行動 App、全端網頁開發、網頁渲染，以及使用 Appium 的行動 UI 自動化測試（SDET）。",
+            "一人負責完整合作流程 — 需求釐清、時程估算、架構設計、實作到交接。",
+            "持續進修：研讀產品策略、技能養成與溝通相關書籍，包括《精實創業》、《刻意練習》、《原子習慣》與《We Need to Talk》。"
+          ]
+        }
+      }
+    },
+    "homee": {
+      "name": "Homee AI",
+      "roles": {
+        "lead": {
+          "title": "產品團隊負責人",
+          "bullets": [
+            "帶領 9 人跨職能團隊（App、前端、後端、DevOps），負責公司旗艦產品從規劃到上線的端到端交付，並將核心平台與 AI 技術整合。",
+            "建立全端、T 型的工程文化，並統一部門的 Scrum 流程。",
+            "推動 AI 輔助軟體開發，將 AI coding agents（GitHub Copilot、Gemini）導入團隊工程流程，並訂定明確的 code review 與品質標準，加速產品迭代。",
+            "設計事件匯流排、工作佇列與 CPU/GPU 資源調度等核心系統，使每月雲端基礎設施成本降低 87%。"
+          ]
+        },
+        "senior": {
+          "title": "團隊負責人 & 資深軟體工程師",
+          "bullets": [
+            "帶領 4 人平台團隊，橫跨渲染與 App 開發，交付核心渲染層 SDK，被外部合作夥伴與內部系統採用。"
+          ],
+          "groups": {
+            "spatial": {
+              "title": "空間運算經驗",
+              "items": {
+                "3dgs": { "name": "3D Gaussian Splatting", "detail": "以 3DGS 視覺化室內空間，並使用 Three.js 渲染。" },
+                "omniverse": { "name": "Omniverse 雲端串流", "detail": "整合 Omniverse 與雲端串流至 VR/AR 裝置，串接 Blender、3DS Max 與 Unity 工作流程。" },
+                "roomplan": { "name": "Apple RoomPlan", "detail": "將 RoomPlan 整合進空間運算應用。" },
+                "visionpro": { "name": "Apple Vision Pro", "detail": "在 Vision Pro 上開發並部署 Unity 應用。" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "xrspace": {
+      "name": "XRSPACE",
+      "roles": {
+        "manager": {
+          "title": "副理",
+          "bullets": [
+            "核心後端系統技術負責人，以 AWS S3、MongoDB、Redis 建構服務；以 OpenAPI 規範統一 API 文件，並整合進 GitLab/GitHub CI/CD 自動部署。"
+          ],
+          "groups": {
+            "partyon": {
+              "title": "多人直播與元宇宙（PartyOn 虛擬 KTV & 演唱會）",
+              "items": {
+                "streaming": { "name": "直播串流", "detail": "整合 Wowza（HLS/WebRTC），為大型虛擬活動提供低延遲影像。" },
+                "audio": { "name": "即時音訊", "detail": "部署 Jamulus，實現延遲低於 20ms 的多人合奏。" },
+                "multiplayer": { "name": "多人連線後端", "detail": "建置並擴展遊戲與帳號伺服器，支援即時房間同步（PUN）與安全、高可用的驗證。" }
+              }
+            }
+          }
+        },
+        "lead": {
+          "title": "主任軟體工程師",
+          "bullets": [
+            "帶領 4 人團隊維護核心帳號系統（OAuth），並交付 Flutter、Java、Kotlin、Swift 跨平台 SDK。"
+          ],
+          "groups": {
+            "projects": {
+              "title": "重點專案",
+              "items": {
+                "app": { "name": "XRSPACE App（Flutter）" },
+                "accountSdk": { "name": "XRSPACE Account SDK", "detail": "支援 iOS、Android、Unity 與 Oculus。" }
+              }
+            }
+          }
+        },
+        "senior": {
+          "title": "資深軟體工程師",
+          "bullets": [
+            "帶領 3 人團隊開發與維護 Android 及 Unity SDK；建立內部溝通協定，簡化商店整合並加速應用層開發。"
+          ],
+          "groups": {
+            "projects": {
+              "title": "重點專案",
+              "items": {
+                "vr2d": { "name": "MANOVA Vr2dDisplay", "detail": "在 3D 場景中顯示 2D 應用 — 獨立完成端到端開發：客製 AOSP、修改 Android Framework、設計 SDK 到 Unity App 整合。" },
+                "fota": { "name": "MANOVA FOTA 更新" },
+                "stores": { "name": "MANOVA 商店", "detail": "App / 影音 / Web 擴充。" },
+                "streaming": { "name": "MANOVA 雲端串流 SDK" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "vive": {
+      "name": "HTC Vive",
+      "roles": {
+        "principal": {
+          "title": "主任軟體工程師",
+          "bullets": [
+            "2019 年 1 月由資深軟體工程師晉升為主任軟體工程師。",
+            "Viveport Cloud Portal：從商業決策到上線僅用 1 個月，推出高關注度產品。",
+            "重構圖片快取、壓縮資源並調整渲染執行緒優先序，達成嚴格的 90 FPS 標準。"
+          ],
+          "groups": {
+            "projects": {
+              "title": "重點專案",
+              "items": {
+                "cloudPortal": { "name": "Viveport Cloud Portal" },
+                "viveportM": { "name": "Viveport M（Home 與 Store）" },
+                "vr2d": { "name": "Vr2dDisplay", "detail": "在 3D 場景中顯示 2D 應用。" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "htc": {
+      "name": "HTC",
+      "roles": {
+        "engineer": {
+          "title": "工程師",
+          "bullets": [
+            "開發 Android 核心系統 App（行事曆、Wi-Fi 設定、天氣）與 Framework 元件；打造 HTC RE 相機的 iOS 配套 App，整合 Firebase / Google Analytics。"
+          ]
+        }
+      }
+    }
+  },
+  "sideProjects": {
+    "smartHome": {
+      "name": "智慧家庭 & AI 監控",
+      "description": "以 Home Assistant 與 Frigate 建置本地端 Edge AI 居家監控，將舊手機改造成攝影機，並把即時移動偵測警報與影像推送至 Apple HomeKit 與 Google Home。"
+    },
+    "toiletFinder": {
+      "name": "ToiletFinder",
+      "description": "兩週內以 Flutter 打造並上架的跨平台 App，串接政府開放資料，依使用者即時位置找出最近的公共廁所。"
+    },
+    "ovoy": {
+      "name": "OvOy 動漫桌布",
+      "description": "以 Live2D 打造的 Android 互動動態桌布 App，並建立 BI 數據框架來優化新手引導。"
+    }
+  },
+  "education": {
+    "ms": {
+      "degree": "電機工程 碩士",
+      "school": "國立臺北科技大學",
+      "note": "論文研究：P2P 網路與穿越 NAT 的 TCP 連線通道。"
+    },
+    "bs": {
+      "degree": "電機工程 學士",
+      "school": "國立臺北科技大學",
+      "note": "因學業表現優異提前畢業：5 年完成學士與碩士（3.5 + 1.5）。"
+    }
+  },
+  "labels": {
+    "about": "關於我",
+    "skills": "技能",
+    "experience": "工作經歷",
+    "sideProjects": "Side Projects",
+    "education": "學歷",
+    "classic": "經典",
+    "immersive": "沉浸",
+    "hint": "移動游標穿過粒子試試看",
+    "hintTouch": "用手指劃過粒子試試看",
+    "print": "列印 / PDF",
+    "contact": "聯絡我",
+    "scroll": "向下捲動",
+    "language": "語言",
+    "layout": "版面",
+    "tour": "導覽",
+    "webglUnavailable": "此裝置不支援 WebGL",
+    "link": "連結"
+  },
+  "format": {
+    "present": "至今",
+    "colon": "：",
+    "listSep": "、",
+    "titleSep": "｜"
+  }
+}

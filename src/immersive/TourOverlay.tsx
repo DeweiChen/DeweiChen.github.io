@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import { SocialLinks } from '@/components/SocialLinks'
-import { useLang } from '@/i18n/LangContext'
+import { useTranslation } from 'react-i18next'
+import { useResume } from '@/i18n/useResume'
 import { cn } from '@/lib/utils'
 import { STATION_AT, STATIONS, TOUR_LENGTH, stationLabel, tourPosition } from './stations'
 
@@ -40,7 +41,7 @@ const planY = (z: number) => ((z - PLAN.z0) / (PLAN.z1 - PLAN.z0)) * 100
 
 /** Top-down map of the room, like a headset's guardian view: stations as dots, you as the marker. */
 function FloorPlan({ position, current }: { position: number; current: number }) {
-  const { t } = useLang()
+  const { t } = useTranslation()
   const i = Math.min(STATIONS.length - 2, Math.floor(position))
   const f = position - i
   const [ax, az] = STATIONS[i].map
@@ -75,7 +76,8 @@ function FloorPlan({ position, current }: { position: number; current: number })
 
 /** Everything DOM in immersive mode: the hero caption, the scroll track that drives the tour, and the HUD. */
 export function TourOverlay({ visible }: { visible: boolean }) {
-  const { t } = useLang()
+  const r = useResume()
+  const { t } = useTranslation()
   const screens = useScreens()
   const position = tourPosition(screens)
   const current = Math.round(position)
@@ -106,11 +108,11 @@ export function TourOverlay({ visible }: { visible: boolean }) {
       >
         {/* First screen belongs to the particles; only a caption and the stats sit at the bottom. */}
         <section className="pointer-events-none flex h-svh flex-col items-center justify-end px-4 pb-8 text-center sm:pb-10">
-          <p className="text-sm text-foreground/90 sm:text-lg">{t.headline}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{t.location}</p>
+          <p className="text-sm text-foreground/90 sm:text-lg">{r.headline}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{r.location}</p>
           <SocialLinks className="pointer-events-auto mt-3 text-muted-foreground" iconClassName="size-4" />
           <dl className="mt-5 grid grid-cols-4 gap-x-4 sm:mt-6 sm:flex sm:gap-x-8">
-            {t.stats.map((s) => (
+            {r.stats.map((s) => (
               <div key={s.label}>
                 <dt className="sr-only">{s.label}</dt>
                 <dd className="text-xl font-semibold tabular-nums sm:text-2xl">{s.value}</dd>
@@ -119,9 +121,9 @@ export function TourOverlay({ visible }: { visible: boolean }) {
             ))}
           </dl>
           <p className="mt-6 text-xs tracking-widest text-muted-foreground/80 sm:mt-8">
-            {coarsePointer ? t.labels.hintTouch : t.labels.hint}
+            {coarsePointer ? t('labels.hintTouch') : t('labels.hint')}
           </p>
-          <ChevronDown className="mt-2 size-5 animate-bounce text-muted-foreground" aria-label={t.labels.scroll} />
+          <ChevronDown className="mt-2 size-5 animate-bounce text-muted-foreground" aria-label={t('labels.scroll')} />
         </section>
         {/* Empty track: its height is the tour, the camera reads the scroll position. */}
         <div aria-hidden style={{ height: `${TOUR_LENGTH * 100}vh` }} />
@@ -148,7 +150,7 @@ export function TourOverlay({ visible }: { visible: boolean }) {
       </AnimatePresence>
 
       <motion.nav
-        aria-label="Tour"
+        aria-label={t('labels.tour')}
         initial={false}
         animate={{ opacity: hudVisible ? 1 : 0, y: hudVisible ? 0 : 16 }}
         transition={{ duration: 0.4 }}

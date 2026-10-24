@@ -1,5 +1,5 @@
 import type { SVGProps } from 'react'
-import { useLang } from '@/i18n/LangContext'
+import { profile } from '@/data/resume'
 import { cn } from '@/lib/utils'
 
 // Brand marks (Simple Icons, CC0); lucide no longer ships brand icons.
@@ -21,13 +21,12 @@ export function LinkedInIcon(props: SVGProps<SVGSVGElement>) {
 
 /** GitHub + LinkedIn icon links, shared by every layout. */
 export function SocialLinks({ className, iconClassName }: { className?: string; iconClassName?: string }) {
-  const { t } = useLang()
   return (
     <div className={cn('flex items-center gap-3', className)}>
-      <a href={t.links.github} target="_blank" rel="noreferrer" aria-label="GitHub" className="transition hover:text-foreground">
+      <a href={profile.links.github} target="_blank" rel="noreferrer" aria-label="GitHub" className="transition hover:text-foreground">
         <GitHubIcon className={cn('size-5', iconClassName)} />
       </a>
-      <a href={t.links.linkedin} target="_blank" rel="noreferrer" aria-label="LinkedIn" className="transition hover:text-foreground">
+      <a href={profile.links.linkedin} target="_blank" rel="noreferrer" aria-label="LinkedIn" className="transition hover:text-foreground">
         <LinkedInIcon className={cn('size-5', iconClassName)} />
       </a>
     </div>

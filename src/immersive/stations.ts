@@ -1,4 +1,4 @@
-import type { Resume } from '@/data/resume'
+import type { TFunction } from 'i18next'
 
 type Vec3 = [number, number, number]
 
@@ -62,6 +62,6 @@ export function nearestStation(screens: number) {
   return Math.round(tourPosition(screens))
 }
 
-export function stationLabel(id: Station['id'], t: Resume) {
-  return id === 'hero' ? t.name : t.labels[id]
+export function stationLabel(id: Station['id'], t: TFunction) {
+  return id === 'hero' ? t('profile.name') : t(`labels.${id}`)
 }

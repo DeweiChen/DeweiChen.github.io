@@ -2,7 +2,8 @@ import { Box, FileText, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { useLang } from '@/i18n/LangContext'
+import { useTranslation } from 'react-i18next'
+import { useLang } from '@/i18n/useLang'
 import type { Lang } from '@/data/resume'
 
 export type Mode = 'classic' | 'immersive'
@@ -15,7 +16,8 @@ interface TopBarProps {
 }
 
 export function TopBar({ mode, onModeChange, immersiveAvailable, busy }: TopBarProps) {
-  const { lang, setLang, t } = useLang()
+  const { lang, setLang } = useLang()
+  const { t } = useTranslation()
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 print:hidden">
@@ -29,7 +31,7 @@ export function TopBar({ mode, onModeChange, immersiveAvailable, busy }: TopBarP
 
         <div className="flex items-center gap-1.5 rounded-xl border bg-background/60 p-1 backdrop-blur-md">
           {mode === 'classic' && (
-            <Button variant="ghost" size="icon-sm" onClick={() => window.print()} aria-label={t.labels.print}>
+            <Button variant="ghost" size="icon-sm" onClick={() => window.print()} aria-label={t('labels.print')}>
               <Printer />
             </Button>
           )}
@@ -40,7 +42,7 @@ export function TopBar({ mode, onModeChange, immersiveAvailable, busy }: TopBarP
             spacing={0}
             value={lang}
             onValueChange={(v) => v && setLang(v as Lang)}
-            aria-label="Language"
+            aria-label={t('labels.language')}
           >
             <ToggleGroupItem value="zh" className="px-2.5">中</ToggleGroupItem>
             <ToggleGroupItem value="en" className="px-2.5">EN</ToggleGroupItem>
@@ -55,16 +57,16 @@ export function TopBar({ mode, onModeChange, immersiveAvailable, busy }: TopBarP
             value={mode}
             disabled={busy}
             onValueChange={(v) => v && v !== mode && onModeChange(v as Mode)}
-            aria-label="Layout"
+            aria-label={t('labels.layout')}
           >
             <ToggleGroupItem value="classic" className="gap-1.5 px-2.5">
               <FileText />
-              <span className="hidden sm:inline">{t.labels.classic}</span>
+              <span className="hidden sm:inline">{t('labels.classic')}</span>
             </ToggleGroupItem>
             {immersiveAvailable ? (
               <ToggleGroupItem value="immersive" className="gap-1.5 px-2.5">
                 <Box />
-                <span className="hidden sm:inline">{t.labels.immersive}</span>
+                <span className="hidden sm:inline">{t('labels.immersive')}</span>
               </ToggleGroupItem>
             ) : (
               <Tooltip>
@@ -72,11 +74,11 @@ export function TopBar({ mode, onModeChange, immersiveAvailable, busy }: TopBarP
                   <span>
                     <ToggleGroupItem value="immersive" disabled className="gap-1.5 px-2.5">
                       <Box />
-                      <span className="hidden sm:inline">{t.labels.immersive}</span>
+                      <span className="hidden sm:inline">{t('labels.immersive')}</span>
                     </ToggleGroupItem>
                   </span>
                 </TooltipTrigger>
-                <TooltipContent>WebGL unavailable</TooltipContent>
+                <TooltipContent>{t('labels.webglUnavailable')}</TooltipContent>
               </Tooltip>
             )}
           </ToggleGroup>

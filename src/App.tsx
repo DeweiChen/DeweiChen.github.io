@@ -4,7 +4,6 @@ import { ClassicResume } from '@/classic/ClassicResume'
 import { TopBar } from '@/components/TopBar'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useCapabilities } from '@/hooks/useCapabilities'
-import { LangProvider } from '@/i18n/LangContext'
 import { PrintResume } from '@/print/PrintResume'
 import { readModeFromUrl, useDimensionShift, type Phase } from '@/transition/DimensionShift'
 
@@ -85,10 +84,8 @@ function Shell() {
 
 export default function App() {
   return (
-    <LangProvider>
-      <TooltipProvider>
-        <Shell />
-      </TooltipProvider>
-    </LangProvider>
+    <TooltipProvider>
+      <Shell />
+    </TooltipProvider>
   )
 }

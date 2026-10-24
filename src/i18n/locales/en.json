@@ -1,0 +1,212 @@
+{
+  "profile": {
+    "name": "De-Wei Chen",
+    "altName": "陳德維",
+    "fullName": "陳德維 (De-Wei Chen)",
+    "headline": "Product Team Lead · Full-Stack Engineer",
+    "location": "Taipei, Taiwan"
+  },
+  "stats": {
+    "mobile": "yrs Mobile",
+    "vr": "yrs VR / XR",
+    "backend": "yrs Backend",
+    "cost": "Cloud cost cut"
+  },
+  "about": [
+    { "lead": "Product Team Lead & Full-Stack Engineer", "text": " with 10+ years in mobile, 7+ years in VR, and 3+ years in backend; experienced in engineering management, leading cross-functional teams of up to 9 engineers." },
+    { "lead": "Top Performer:", "text": " Ranked #1 in performance out of a 70-member department at HTC within my second year." },
+    { "lead": "AI-Driven & Problem Solver:", "text": " Actively leveraging AI-assisted workflows to steer development and solve complex engineering challenges." }
+  ],
+  "skills": {
+    "ai": { "group": "AI Agents", "items": ["Claude Code", "GitHub Copilot", "Antigravity", "Cursor"] },
+    "mobile": { "group": "Mobile", "items": ["Android", "iOS", "Unity3D", "Flutter", "React Native"] },
+    "rendering": { "group": "3D / Rendering", "items": ["Unity", "Three.js", "3D Gaussian Splatting (3DGS)", "Apple Vision Pro", "Apple RoomPlan"] },
+    "backend": { "group": "Backend", "items": ["Golang", "MongoDB", "Redis", "Docker", "CI/CD", "RESTful API design (CRUD)", "OpenAPI Specification"] },
+    "architecture": { "group": "Architecture", "items": ["Clean Architecture", "Domain-Driven Design (DDD)", "Event-Driven Systems"] },
+    "leadership": { "group": "Leadership", "items": ["Engineering Management", "Cross-functional Team Leadership", "Technical Mentoring", "Agile / Scrum Delivery", "Cloud Cost Optimization"] }
+  },
+  "experience": {
+    "freelance": {
+      "name": "Independent Contractor",
+      "roles": {
+        "freelance": {
+          "title": "Freelance Software Engineer",
+          "bullets": [
+            "Independently delivered multiple client projects end-to-end as a solo developer, spanning mobile apps, full-stack web development, web rendering, and mobile UI test automation with Appium (SDET).",
+            "Owned the full engagement lifecycle single-handedly — requirements scoping, estimation, architecture, implementation, and handoff.",
+            "Professional Development: Studied product strategy, skill development, and communication, including The Lean Startup, Peak, Atomic Habits, and We Need to Talk."
+          ]
+        }
+      }
+    },
+    "homee": {
+      "name": "Homee AI",
+      "roles": {
+        "lead": {
+          "title": "Product Team Lead",
+          "bullets": [
+            "Led a 9-person cross-functional team spanning App, Frontend, Backend, and DevOps, owning end-to-end delivery of the company's flagship product from planning to production while integrating core platforms with AI technologies.",
+            "Built a full-stack, T-shaped engineering culture and standardized Scrum practices across the department.",
+            "Championed AI-assisted software development, integrating AI coding agents (GitHub Copilot, Gemini) into the team's engineering workflow with clear code review and quality standards to accelerate product iteration.",
+            "Architected core systems — event buses, job queues, and CPU/GPU resource allocation — reducing monthly cloud infrastructure costs by 87%."
+          ]
+        },
+        "senior": {
+          "title": "Team Lead & Senior Software Engineer",
+          "bullets": [
+            "Led a 4-person platform team across rendering and app development, delivering a core rendering-layer SDK adopted by external partners and internal systems."
+          ],
+          "groups": {
+            "spatial": {
+              "title": "Spatial Computing Experience",
+              "items": {
+                "3dgs": { "name": "3D Gaussian Splatting", "detail": "Visualized interior spaces with 3DGS and rendered them with Three.js." },
+                "omniverse": { "name": "Omniverse cloud streaming", "detail": "Integrated Omniverse with cloud streaming for VR/AR devices, syncing workflows across Blender, 3DS Max, and Unity." },
+                "roomplan": { "name": "Apple RoomPlan", "detail": "Integrated RoomPlan into spatial computing applications." },
+                "visionpro": { "name": "Apple Vision Pro", "detail": "Developed and deployed Unity applications on Vision Pro." }
+              }
+            }
+          }
+        }
+      }
+    },
+    "xrspace": {
+      "name": "XRSPACE",
+      "roles": {
+        "manager": {
+          "title": "Assistant Manager",
+          "bullets": [
+            "Technical lead for core backend systems on AWS S3, MongoDB, and Redis; standardized API docs with the OpenAPI Specification and wired them into GitLab/GitHub CI/CD for automated deployment."
+          ],
+          "groups": {
+            "partyon": {
+              "title": "Multiplayer Live Streaming & Metaverse (PartyOn Virtual KTV & Concerts)",
+              "items": {
+                "streaming": { "name": "Live Streaming", "detail": "Integrated Wowza (HLS/WebRTC) for low-latency video at large-scale virtual events." },
+                "audio": { "name": "Real-time Audio", "detail": "Deployed Jamulus for multiplayer jam sessions with sub-20ms latency." },
+                "multiplayer": { "name": "Multiplayer Backend", "detail": "Built and scaled game and account servers for real-time room sync (PUN) and secure, high-availability auth." }
+              }
+            }
+          }
+        },
+        "lead": {
+          "title": "Lead Software Developer",
+          "bullets": [
+            "Led a 4-engineer team maintaining the core Account System (OAuth) and delivering cross-platform SDKs across Flutter, Java, Kotlin, and Swift."
+          ],
+          "groups": {
+            "projects": {
+              "title": "Key Projects",
+              "items": {
+                "app": { "name": "XRSPACE App (Flutter)" },
+                "accountSdk": { "name": "XRSPACE Account SDK", "detail": "iOS, Android, Unity, and Oculus." }
+              }
+            }
+          }
+        },
+        "senior": {
+          "title": "Senior Software Developer",
+          "bullets": [
+            "Led a 3-engineer team developing Android and Unity SDKs; established internal protocols that streamlined Store integration and accelerated app-layer development."
+          ],
+          "groups": {
+            "projects": {
+              "title": "Key Projects",
+              "items": {
+                "vr2d": { "name": "MANOVA Vr2dDisplay", "detail": "2D apps displayed in a 3D scene — owned end-to-end: custom AOSP builds, Android framework changes, SDK design, and Unity app integration." },
+                "fota": { "name": "MANOVA FOTA Updates" },
+                "stores": { "name": "MANOVA Stores", "detail": "App / Video / Web extensions." },
+                "streaming": { "name": "MANOVA Cloud Streaming SDK" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "vive": {
+      "name": "HTC Vive",
+      "roles": {
+        "principal": {
+          "title": "Principal Software Engineer",
+          "bullets": [
+            "Promoted from Senior to Principal Software Engineer in Jan 2019.",
+            "Viveport Cloud Portal: launched a high-profile product within 1 month from business decision to deployment.",
+            "Hit a strict 90 FPS standard by restructuring image caching, compressing assets, and rescheduling rendering-thread priorities."
+          ],
+          "groups": {
+            "projects": {
+              "title": "Key Projects",
+              "items": {
+                "cloudPortal": { "name": "Viveport Cloud Portal" },
+                "viveportM": { "name": "Viveport M (Home & Store)" },
+                "vr2d": { "name": "Vr2dDisplay", "detail": "2D apps displayed in a 3D scene." }
+              }
+            }
+          }
+        }
+      }
+    },
+    "htc": {
+      "name": "HTC",
+      "roles": {
+        "engineer": {
+          "title": "Engineer",
+          "bullets": [
+            "Developed core Android system apps (Calendar, Wi-Fi Settings, Weather) and framework components; built the iOS companion app for the HTC RE camera with Firebase / Google Analytics."
+          ]
+        }
+      }
+    }
+  },
+  "sideProjects": {
+    "smartHome": {
+      "name": "Smart Home & AI Surveillance",
+      "description": "A local edge-AI home surveillance system with Home Assistant and Frigate — old phones repurposed as cameras, pushing real-time motion alerts with live video to Apple HomeKit & Google Home."
+    },
+    "toiletFinder": {
+      "name": "ToiletFinder",
+      "description": "A cross-platform Flutter app built in two weeks and published to the app store; it uses Taiwan's government open data to find the nearest public restrooms from the user's real-time location."
+    },
+    "ovoy": {
+      "name": "OvOy Anime Wallpaper",
+      "description": "An interactive Android live wallpaper app built with Live2D, plus a BI data framework to optimize user onboarding."
+    }
+  },
+  "education": {
+    "ms": {
+      "degree": "M.S. in Electrical Engineering",
+      "school": "National Taipei University of Technology",
+      "note": "Thesis: P2P networking and TCP connection tunneling through NAT."
+    },
+    "bs": {
+      "degree": "B.S. in Electrical Engineering",
+      "school": "National Taipei University of Technology",
+      "note": "Early graduation: completed B.S. + M.S. in 5 years (3.5 + 1.5) for outstanding academic performance."
+    }
+  },
+  "labels": {
+    "about": "About",
+    "skills": "Skills",
+    "experience": "Experience",
+    "sideProjects": "Side Projects",
+    "education": "Education",
+    "classic": "Classic",
+    "immersive": "Immersive",
+    "hint": "Move your cursor through the particles",
+    "hintTouch": "Drag your finger across the particles",
+    "print": "Print / PDF",
+    "contact": "Get in touch",
+    "scroll": "Scroll",
+    "language": "Language",
+    "layout": "Layout",
+    "tour": "Tour",
+    "webglUnavailable": "WebGL unavailable",
+    "link": "Link"
+  },
+  "format": {
+    "present": "Present",
+    "colon": ": ",
+    "listSep": ", ",
+    "titleSep": ", "
+  }
+}
