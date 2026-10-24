@@ -7,6 +7,12 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   base: '/',
   plugins: [react(), tailwindcss()],
+  server: {
+    host: true,
+  },
+  preview: {
+    host: true,
+  },
   // three.js lives in its own lazy chunk (~270 kB gzip), loaded only for the immersive mode.
   build: { chunkSizeWarningLimit: 1100 },
   resolve: {
