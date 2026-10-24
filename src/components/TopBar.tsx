@@ -4,6 +4,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useTranslation } from 'react-i18next'
 import { useLang } from '@/i18n/useLang'
+import { cn } from '@/lib/utils'
 import type { Lang } from '@/data/resume'
 
 export type Mode = 'classic' | 'immersive'
@@ -21,7 +22,13 @@ export function TopBar({ mode, onModeChange, immersiveAvailable, busy }: TopBarP
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 print:hidden">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4">
+      {/* Classic lines up with the content column; immersive spreads to the screen edges like the tour HUD. */}
+      <div
+        className={cn(
+          'mx-auto flex h-14 items-center justify-between gap-2 px-4 transition-[max-width,padding] duration-700 ease-in-out',
+          mode === 'classic' ? 'max-w-6xl' : 'max-w-[100vw] sm:px-8',
+        )}
+      >
         <a
           href="#top"
           className="bg-gradient-to-r from-brand-from to-brand-to bg-clip-text text-lg font-bold tracking-tight text-transparent"
