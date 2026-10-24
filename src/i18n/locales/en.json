@@ -30,7 +30,6 @@
       "name": "Independent Contractor",
       "roles": {
         "freelance": {
-          "title": "Freelance Software Engineer",
           "bullets": [
             "Independently delivered multiple client projects end-to-end as a solo developer, spanning mobile apps, full-stack web development, web rendering, and mobile UI test automation with Appium (SDET).",
             "Owned the full engagement lifecycle single-handedly — requirements scoping, estimation, architecture, implementation, and handoff.",
@@ -43,7 +42,6 @@
       "name": "Homee AI",
       "roles": {
         "lead": {
-          "title": "Product Team Lead",
           "bullets": [
             "Led a 9-person cross-functional team spanning App, Frontend, Backend, and DevOps, owning end-to-end delivery of the company's flagship product from planning to production while integrating core platforms with AI technologies.",
             "Built a full-stack, T-shaped engineering culture and standardized Scrum practices across the department.",
@@ -52,7 +50,6 @@
           ]
         },
         "senior": {
-          "title": "Team Lead & Senior Software Engineer",
           "bullets": [
             "Led a 4-person platform team across rendering and app development, delivering a core rendering-layer SDK adopted by external partners and internal systems."
           ],
@@ -74,7 +71,6 @@
       "name": "XRSPACE",
       "roles": {
         "manager": {
-          "title": "Assistant Manager",
           "bullets": [
             "Technical lead for core backend systems on AWS S3, MongoDB, and Redis; standardized API docs with the OpenAPI Specification and wired them into GitLab/GitHub CI/CD for automated deployment."
           ],
@@ -90,7 +86,6 @@
           }
         },
         "lead": {
-          "title": "Lead Software Developer",
           "bullets": [
             "Led a 4-engineer team maintaining the core Account System (OAuth) and delivering cross-platform SDKs across Flutter, Java, Kotlin, and Swift."
           ],
@@ -105,7 +100,6 @@
           }
         },
         "senior": {
-          "title": "Senior Software Developer",
           "bullets": [
             "Led a 3-engineer team developing Android and Unity SDKs; established internal protocols that streamlined Store integration and accelerated app-layer development."
           ],
@@ -127,7 +121,6 @@
       "name": "HTC Vive",
       "roles": {
         "principal": {
-          "title": "Principal Software Engineer",
           "bullets": [
             "Promoted from Senior to Principal Software Engineer in Jan 2019.",
             "Viveport Cloud Portal: launched a high-profile product within 1 month from business decision to deployment.",
@@ -150,7 +143,6 @@
       "name": "HTC",
       "roles": {
         "engineer": {
-          "title": "Engineer",
           "bullets": [
             "Developed core Android system apps (Calendar, Wi-Fi Settings, Weather) and framework components; built the iOS companion app for the HTC RE camera with Firebase / Google Analytics."
           ]
@@ -174,12 +166,10 @@
   },
   "education": {
     "ms": {
-      "degree": "M.S. in Electrical Engineering",
       "school": "National Taipei University of Technology",
       "note": "Thesis: P2P networking and TCP connection tunneling through NAT."
     },
     "bs": {
-      "degree": "B.S. in Electrical Engineering",
       "school": "National Taipei University of Technology",
       "note": "Early graduation: completed B.S. + M.S. in 5 years (3.5 + 1.5) for outstanding academic performance."
     }

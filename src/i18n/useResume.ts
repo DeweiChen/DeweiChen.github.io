@@ -45,7 +45,7 @@ export function useResume() {
           const rm = companies[c.id].roles[r.id]
           return {
             id: r.id,
-            title: rm.title,
+            title: r.title,
             period: period(r.period),
             bullets: rm.bullets,
             groups: r.groups?.map((g) => ({
@@ -57,13 +57,12 @@ export function useResume() {
         }),
       })),
       sideProjects: sideProjects.map((p) => ({ ...m.sideProjects[p.id as keyof Messages['sideProjects']], id: p.id, period: period(p.period), link: p.link })),
-      education: education.map((e) => ({ ...m.education[e.id as keyof Messages['education']], id: e.id, period: period(e.period) })),
+      education: education.map((e) => ({ ...m.education[e.id as keyof Messages['education']], id: e.id, degree: e.degree, period: period(e.period) })),
     }
   }, [i18n, lang])
 }
 
 interface RoleMessages {
-  title: string
   bullets: string[]
   groups?: Record<string, { title: string; items: Record<string, { name: string; detail?: string }> }>
 }

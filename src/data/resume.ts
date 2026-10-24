@@ -11,6 +11,8 @@ export interface Period {
 
 export interface RoleData {
   id: string
+  /** Job titles stay in English in every language. */
+  title: string
   period: Period
   groups?: { id: string; items: { id: string; link?: string }[] }[]
 }
@@ -41,14 +43,15 @@ export const skills = ['ai', 'mobile', 'rendering', 'backend', 'architecture', '
 export const experience: CompanyData[] = [
   {
     id: 'freelance',
-    roles: [{ id: 'freelance', period: { start: '2026-04', end: null } }],
+    roles: [{ id: 'freelance', title: 'Freelance Software Engineer', period: { start: '2026-04', end: null } }],
   },
   {
     id: 'homee',
     roles: [
-      { id: 'lead', period: { start: '2025-05', end: '2026-04' } },
+      { id: 'lead', title: 'Product Team Lead', period: { start: '2025-05', end: '2026-04' } },
       {
         id: 'senior',
+        title: 'Team Lead & Senior Software Engineer',
         period: { start: '2024-03', end: '2025-05' },
         groups: [{ id: 'spatial', items: [{ id: '3dgs' }, { id: 'omniverse' }, { id: 'roomplan' }, { id: 'visionpro' }] }],
       },
@@ -59,16 +62,19 @@ export const experience: CompanyData[] = [
     roles: [
       {
         id: 'manager',
+        title: 'Assistant Manager',
         period: { start: '2022-04', end: '2023-09' },
         groups: [{ id: 'partyon', items: [{ id: 'streaming' }, { id: 'audio' }, { id: 'multiplayer' }] }],
       },
       {
         id: 'lead',
+        title: 'Lead Software Developer',
         period: { start: '2020-11', end: '2022-04' },
         groups: [{ id: 'projects', items: [{ id: 'app' }, { id: 'accountSdk' }] }],
       },
       {
         id: 'senior',
+        title: 'Senior Software Developer',
         period: { start: '2019-11', end: '2020-11' },
         groups: [{ id: 'projects', items: [{ id: 'vr2d' }, { id: 'fota' }, { id: 'stores' }, { id: 'streaming' }] }],
       },
@@ -79,6 +85,7 @@ export const experience: CompanyData[] = [
     roles: [
       {
         id: 'principal',
+        title: 'Principal Software Engineer',
         period: { start: '2017-06', end: '2019-03' },
         groups: [
           {
@@ -95,7 +102,7 @@ export const experience: CompanyData[] = [
   },
   {
     id: 'htc',
-    roles: [{ id: 'engineer', period: { start: '2015-09', end: '2017-05' } }],
+    roles: [{ id: 'engineer', title: 'Engineer', period: { start: '2015-09', end: '2017-05' } }],
   },
 ]
 
@@ -105,7 +112,8 @@ export const sideProjects: { id: string; period: Period; link?: string }[] = [
   { id: 'ovoy', period: { start: '2016' }, link: 'https://studioxin.com/demo/ovoy/app.html' },
 ]
 
-export const education: { id: string; period: Period }[] = [
-  { id: 'ms', period: { start: '2014', end: '2015' } },
-  { id: 'bs', period: { start: '2011', end: '2014' } },
+/** Degree names stay in English in every language. */
+export const education: { id: string; degree: string; period: Period }[] = [
+  { id: 'ms', degree: 'M.S. in Electrical Engineering', period: { start: '2014', end: '2015' } },
+  { id: 'bs', degree: 'B.S. in Electrical Engineering', period: { start: '2011', end: '2014' } },
 ]

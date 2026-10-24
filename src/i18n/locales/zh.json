@@ -3,7 +3,7 @@
     "name": "陳德維",
     "altName": "De-Wei Chen",
     "fullName": "陳德維 (De-Wei Chen)",
-    "headline": "產品團隊負責人 · 全端工程師",
+    "headline": "Product Team Lead · Full-Stack Engineer",
     "location": "台灣 台北"
   },
   "stats": {
@@ -13,7 +13,7 @@
     "cost": "雲端成本降幅"
   },
   "about": [
-    { "lead": "產品團隊負責人暨全端工程師", "text": "，擁有 10 年以上行動開發、7 年以上 VR、3 年以上後端經驗；具工程管理經驗，曾帶領最多 9 人的跨職能團隊。" },
+    { "lead": "Product Team Lead & Full-Stack Engineer", "text": "，擁有 10 年以上行動開發、7 年以上 VR、3 年以上後端經驗；具工程管理經驗，曾帶領最多 9 人的跨職能團隊。" },
     { "lead": "績效頂尖：", "text": "進入 HTC 第二年，即在 70 人部門中績效排名第一。" },
     { "lead": "AI 驅動的問題解決者：", "text": "積極運用 AI 輔助工作流程，主導開發方向並解決複雜的工程挑戰。" }
   ],
@@ -30,7 +30,6 @@
       "name": "獨立接案",
       "roles": {
         "freelance": {
-          "title": "自由軟體工程師",
           "bullets": [
             "以個人開發者身分獨立完成多個客戶專案的端到端交付，涵蓋行動 App、全端網頁開發、網頁渲染，以及使用 Appium 的行動 UI 自動化測試（SDET）。",
             "一人負責完整合作流程 — 需求釐清、時程估算、架構設計、實作到交接。",
@@ -43,7 +42,6 @@
       "name": "Homee AI",
       "roles": {
         "lead": {
-          "title": "產品團隊負責人",
           "bullets": [
             "帶領 9 人跨職能團隊（App、前端、後端、DevOps），負責公司旗艦產品從規劃到上線的端到端交付，並將核心平台與 AI 技術整合。",
             "建立全端、T 型的工程文化，並統一部門的 Scrum 流程。",
@@ -52,7 +50,6 @@
           ]
         },
         "senior": {
-          "title": "團隊負責人 & 資深軟體工程師",
           "bullets": [
             "帶領 4 人平台團隊，橫跨渲染與 App 開發，交付核心渲染層 SDK，被外部合作夥伴與內部系統採用。"
           ],
@@ -74,7 +71,6 @@
       "name": "XRSPACE",
       "roles": {
         "manager": {
-          "title": "副理",
           "bullets": [
             "核心後端系統技術負責人，以 AWS S3、MongoDB、Redis 建構服務；以 OpenAPI 規範統一 API 文件，並整合進 GitLab/GitHub CI/CD 自動部署。"
           ],
@@ -90,7 +86,6 @@
           }
         },
         "lead": {
-          "title": "主任軟體工程師",
           "bullets": [
             "帶領 4 人團隊維護核心帳號系統（OAuth），並交付 Flutter、Java、Kotlin、Swift 跨平台 SDK。"
           ],
@@ -105,7 +100,6 @@
           }
         },
         "senior": {
-          "title": "資深軟體工程師",
           "bullets": [
             "帶領 3 人團隊開發與維護 Android 及 Unity SDK；建立內部溝通協定，簡化商店整合並加速應用層開發。"
           ],
@@ -127,9 +121,8 @@
       "name": "HTC Vive",
       "roles": {
         "principal": {
-          "title": "主任軟體工程師",
           "bullets": [
-            "2019 年 1 月由資深軟體工程師晉升為主任軟體工程師。",
+            "2019 年 1 月由 Senior 晉升為 Principal Software Engineer。",
             "Viveport Cloud Portal：從商業決策到上線僅用 1 個月，推出高關注度產品。",
             "重構圖片快取、壓縮資源並調整渲染執行緒優先序，達成嚴格的 90 FPS 標準。"
           ],
@@ -150,7 +143,6 @@
       "name": "HTC",
       "roles": {
         "engineer": {
-          "title": "工程師",
           "bullets": [
             "開發 Android 核心系統 App（行事曆、Wi-Fi 設定、天氣）與 Framework 元件；打造 HTC RE 相機的 iOS 配套 App，整合 Firebase / Google Analytics。"
           ]
@@ -174,12 +166,10 @@
   },
   "education": {
     "ms": {
-      "degree": "電機工程 碩士",
       "school": "國立臺北科技大學",
       "note": "論文研究：P2P 網路與穿越 NAT 的 TCP 連線通道。"
     },
     "bs": {
-      "degree": "電機工程 學士",
       "school": "國立臺北科技大學",
       "note": "因學業表現優異提前畢業：5 年完成學士與碩士（3.5 + 1.5）。"
     }
