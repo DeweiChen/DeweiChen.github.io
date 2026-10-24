@@ -1,8 +1,7 @@
-import { useEffect, useRef, type RefObject } from 'react'
+import { lazy, Suspense, useEffect, useRef, type RefObject } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { CatmullRomCurve3, Quaternion, Vector2, Vector3, type PerspectiveCamera } from 'three'
-import { Stats } from '@react-three/drei'
-import { Bloom, EffectComposer } from '@react-three/postprocessing'
+import { Bloom } from './Bloom'
 import { TourOutline } from './TourOutline'
 import { TourOverlay } from './TourOverlay'
 import { AboutFrame } from './AboutFrame'
@@ -30,6 +29,8 @@ export interface ImmersiveSceneProps {
 
 // `?debug=1` shows the stats.js FPS / MS / MB panel.
 const DEBUG = new URLSearchParams(location.search).get('debug') === '1'
+// Its own chunk, so drei only downloads when debugging.
+const Stats = lazy(() => import('@react-three/drei').then((m) => ({ default: m.Stats })))
 
 const toVec = ([x, y, z]: [number, number, number]) => new Vector3(x, y, z)
 // The path runs through every station and any waypoints between them. POINT_AT maps a
@@ -208,15 +209,12 @@ export default function ImmersiveScene(props: ImmersiveSceneProps) {
         >
           <color attach="background" args={['#0b0b14']} />
           <Stage {...props} />
-          <EffectComposer>
-            <Bloom
-              intensity={props.lowEnd ? 0.45 : 0.7}
-              luminanceThreshold={0.35}
-              luminanceSmoothing={0.3}
-              mipmapBlur
-            />
-          </EffectComposer>
-          {DEBUG && <Stats />}
+          <Bloom intensity={props.lowEnd ? 0.45 : 0.7} />
+          {DEBUG && (
+            <Suspense fallback={null}>
+              <Stats />
+            </Suspense>
+          )}
         </Canvas>
       </div>
       <TourOverlay visible={props.direction === 'in'} />

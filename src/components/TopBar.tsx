@@ -14,9 +14,11 @@ interface TopBarProps {
   onModeChange: (mode: Mode) => void
   immersiveAvailable: boolean
   busy: boolean
+  /** The user is reaching for the 3D toggle; a chance to start loading it. */
+  onImmersiveIntent?: () => void
 }
 
-export function TopBar({ mode, onModeChange, immersiveAvailable, busy }: TopBarProps) {
+export function TopBar({ mode, onModeChange, immersiveAvailable, busy, onImmersiveIntent }: TopBarProps) {
   const { lang, setLang } = useLang()
   const { t } = useTranslation()
 
@@ -71,7 +73,13 @@ export function TopBar({ mode, onModeChange, immersiveAvailable, busy }: TopBarP
               <span className="hidden sm:inline">{t('labels.classic')}</span>
             </ToggleGroupItem>
             {immersiveAvailable ? (
-              <ToggleGroupItem value="immersive" className="gap-1.5 px-2.5">
+              <ToggleGroupItem
+                value="immersive"
+                className="gap-1.5 px-2.5"
+                onPointerEnter={onImmersiveIntent}
+                onPointerDown={onImmersiveIntent}
+                onFocus={onImmersiveIntent}
+              >
                 <Box />
                 <span className="hidden sm:inline">{t('labels.immersive')}</span>
               </ToggleGroupItem>

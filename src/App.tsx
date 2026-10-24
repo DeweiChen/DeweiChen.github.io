@@ -10,11 +10,20 @@ import { readModeFromUrl, useDimensionShift, type Phase } from '@/transition/Dim
 const loadImmersive = () => import('@/immersive/ImmersiveScene')
 const ImmersiveScene = lazy(loadImmersive)
 
-// Fetch the 3D chunk once the page is idle, so the 2D -> 3D transition never waits on the network.
-if (typeof window !== 'undefined') {
-  const prefetch = () => void loadImmersive()
-  if ('requestIdleCallback' in window) requestIdleCallback(prefetch, { timeout: 3000 })
-  else setTimeout(prefetch, 1500)
+const prefetchImmersive = () => void loadImmersive()
+
+// The 3D chunk is ~290 kB gzip. On a desktop with a decent connection, fetch it once the page is
+// idle so the 2D -> 3D transition never waits on the network. Phones, Save-Data and slow links
+// only fetch it on intent (hovering, focusing or pressing the 3D toggle).
+function shouldPrefetchOnIdle() {
+  const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection
+  if (conn?.saveData || /(^|-)[23]g$/.test(conn?.effectiveType ?? '')) return false
+  return window.matchMedia('(pointer: fine)').matches
+}
+
+if (typeof window !== 'undefined' && shouldPrefetchOnIdle()) {
+  if ('requestIdleCallback' in window) requestIdleCallback(prefetchImmersive, { timeout: 3000 })
+  else setTimeout(prefetchImmersive, 1500)
 }
 
 const EASE = [0.65, 0, 0.35, 1] as const
@@ -60,7 +69,7 @@ function Shell() {
   return (
     <>
     <div className="min-h-svh bg-background print:hidden">
-      <TopBar mode={mode} onModeChange={switchTo} immersiveAvailable={webgl} busy={phase === 'to3d' || phase === 'to2d'} />
+      <TopBar mode={mode} onModeChange={switchTo} immersiveAvailable={webgl} busy={phase === 'to3d' || phase === 'to2d'} onImmersiveIntent={prefetchImmersive} />
       {showImmersive && (
         <Suspense fallback={null}>
           <ImmersiveScene
