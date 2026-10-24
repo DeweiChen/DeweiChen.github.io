@@ -1,6 +1,7 @@
 import { useEffect, useRef, type RefObject } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { CatmullRomCurve3, Quaternion, Vector2, Vector3, type PerspectiveCamera } from 'three'
+import { Stats } from '@react-three/drei'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { TourOutline } from './TourOutline'
 import { TourOverlay } from './TourOverlay'
@@ -26,6 +27,9 @@ export interface ImmersiveSceneProps {
   /** Leave through the door at the end of the tour, back to the classic page. */
   onExit?: () => void
 }
+
+// `?debug=1` shows the stats.js FPS / MS / MB panel.
+const DEBUG = new URLSearchParams(location.search).get('debug') === '1'
 
 const toVec = ([x, y, z]: [number, number, number]) => new Vector3(x, y, z)
 // The path runs through every station and any waypoints between them. POINT_AT maps a
@@ -212,6 +216,7 @@ export default function ImmersiveScene(props: ImmersiveSceneProps) {
               mipmapBlur
             />
           </EffectComposer>
+          {DEBUG && <Stats />}
         </Canvas>
       </div>
       <TourOverlay visible={props.direction === 'in'} />
