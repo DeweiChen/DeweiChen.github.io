@@ -63,7 +63,8 @@ export function Room({ progress, lowEnd }: { progress: RefObject<ScrollProgress>
   return (
     <>
       <mesh geometry={mesh} material={solid} frustumCulled={false} />
-      <lineSegments geometry={edges} material={wire} frustumCulled={false} />
+      {/* Drawn before other transparent things so panels in front cover the edges behind them. */}
+      <lineSegments geometry={edges} material={wire} frustumCulled={false} renderOrder={-1} />
     </>
   )
 }

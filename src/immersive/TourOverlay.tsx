@@ -5,7 +5,9 @@ import { SocialLinks } from '@/components/SocialLinks'
 import { useTranslation } from 'react-i18next'
 import { useResume } from '@/i18n/useResume'
 import { cn } from '@/lib/utils'
-import { STATION_AT, STATIONS, TOUR_LENGTH, stationLabel, tourPosition } from './stations'
+import { READER_EVENT } from './Timeline'
+import { EXPERIENCE, SECTIONS, sectionOf, STATION_AT, STATIONS, TOUR_LENGTH, stationLabel, tourPosition } from './stations'
+import { headX, yearOfX } from './timelineLayout'
 
 const coarsePointer = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
 
@@ -59,7 +61,7 @@ function FloorPlan({ position, current }: { position: number; current: number })
       />
       {STATIONS.map((s, k) => (
         <circle
-          key={s.id}
+          key={k}
           cx={planX(s.map[0])}
           cy={planY(s.map[1])}
           r={k === current ? 3.2 : 2}
@@ -81,8 +83,19 @@ export function TourOverlay({ visible }: { visible: boolean }) {
   const screens = useScreens()
   const position = tourPosition(screens)
   const current = Math.round(position)
-  const arrived = Math.abs(position - current) < 0.08
-  const hudVisible = visible && screens > 0.5
+  const section = sectionOf(current)
+  // The Experience walk keeps its title up the whole way, with the year ticking under it.
+  const walking = position > EXPERIENCE.first - 0.5 && position < EXPERIENCE.last + 0.5
+  const arrived = Math.abs(position - current) < 0.08 || walking
+  const year = Math.floor(yearOfX(headX(position - EXPERIENCE.first)))
+  const [reading, setReading] = useState(false)
+  const hudVisible = visible && screens > 0.5 && !reading
+
+  useEffect(() => {
+    const onReader = (e: Event) => setReading((e as CustomEvent<boolean>).detail)
+    window.addEventListener(READER_EVENT, onReader)
+    return () => window.removeEventListener(READER_EVENT, onReader)
+  }, [])
 
   useEffect(() => {
     if (!visible) return
@@ -90,7 +103,7 @@ export function TourOverlay({ visible }: { visible: boolean }) {
       if (e.metaKey || e.ctrlKey || e.altKey) return
       if (e.key === 'ArrowRight') goTo(current + 1)
       else if (e.key === 'ArrowLeft') goTo(current - 1)
-      else if (/^[1-9]$/.test(e.key) && Number(e.key) <= STATIONS.length) goTo(Number(e.key) - 1)
+      else if (/^[1-9]$/.test(e.key) && Number(e.key) <= SECTIONS.length) goTo(SECTIONS[Number(e.key) - 1].first)
       else return
       e.preventDefault()
     }
@@ -131,9 +144,9 @@ export function TourOverlay({ visible }: { visible: boolean }) {
       </motion.div>
 
       <AnimatePresence>
-        {hudVisible && arrived && current > 0 && (
+        {hudVisible && arrived && section > 0 && (
           <motion.div
-            key={current}
+            key={section}
             initial={{ opacity: 0, y: 12, filter: 'blur(6px)' }}
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             exit={{ opacity: 0, y: -8, filter: 'blur(6px)' }}
@@ -141,11 +154,16 @@ export function TourOverlay({ visible }: { visible: boolean }) {
             className="pointer-events-none fixed top-20 left-4 z-20 sm:top-24 sm:left-8"
           >
             <p className="font-mono text-xs tracking-[0.3em] text-muted-foreground">
-              {String(current).padStart(2, '0')} / {String(STATIONS.length - 1).padStart(2, '0')}
+              {String(section).padStart(2, '0')} / {String(SECTIONS.length - 1).padStart(2, '0')}
             </p>
             <h2 className="mt-1 bg-gradient-to-r from-brand-from to-brand-to bg-clip-text text-3xl font-semibold tracking-wide text-transparent sm:text-5xl">
               {stationLabel(STATIONS[current].id, t)}
             </h2>
+            {walking && (
+              <p className="mt-2 font-mono text-5xl font-light tracking-tight text-foreground/90 tabular-nums sm:text-7xl" aria-live="off">
+                {year}
+              </p>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -163,12 +181,12 @@ export function TourOverlay({ visible }: { visible: boolean }) {
         <FloorPlan position={position} current={current} />
         <div className="flex flex-col gap-2 pb-1">
           <ol className="hidden space-y-0.5 text-xs sm:block">
-            {STATIONS.map((s, k) => (
+            {SECTIONS.map((s, k) => (
               <li key={s.id}>
                 <button
                   type="button"
-                  onClick={() => goTo(k)}
-                  className={cn('transition-colors', k === current ? 'text-primary' : 'text-muted-foreground hover:text-foreground')}
+                  onClick={() => goTo(s.first)}
+                  className={cn('transition-colors', k === section ? 'text-primary' : 'text-muted-foreground hover:text-foreground')}
                 >
                   <span className="mr-2 font-mono tabular-nums opacity-60">{k + 1}</span>
                   {stationLabel(s.id, t)}

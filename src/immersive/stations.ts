@@ -1,4 +1,5 @@
 import type { TFunction } from 'i18next'
+import { BOARD_Z, COMPANIES } from './timelineLayout'
 
 type Vec3 = [number, number, number]
 
@@ -16,7 +17,8 @@ export interface Station {
 }
 
 /**
- * The camera's tour of the room, one stop per resume section. The hero stop
+ * The camera's tour of the room: a stop per resume section, or several for a
+ * section that is walked through (Experience has one per company). The hero stop
  * must stay at the canvas' default camera so the 2D <-> 3D morph lines up.
  */
 export const STATIONS: Station[] = [
@@ -26,8 +28,18 @@ export const STATIONS: Station[] = [
   { id: 'about', pos: [-1.25, 0.62, -1.5], target: [-1.4, 0.72, -4], span: 1.2, fit: [2.1, 1.45], map: [-1.4, -3.6] },
   // Bookshelf on the right wall.
   { id: 'skills', pos: [-0.2, 0.25, -1.1], target: [2.7, 0.2, -1.6], span: 1.2, fit: [2.2, 2.5], map: [2.9, -1.6] },
-  // Timeline running along the floor.
-  { id: 'experience', pos: [0, 0.9, 1.6], target: [0, -1.4, -2.4], span: 1.2, fit: [3, 2.5], map: [0, -0.5] },
+  // Experience: a walk along the floor timeline, one stop in front of each company's board.
+  ...COMPANIES.map(
+    (c, k): Station => ({
+      id: 'experience',
+      // Stand a little behind in time (to the left) so the line runs off into the future.
+      pos: [c.x - 0.65, -0.2, 2.4],
+      target: [c.x + 0.05, -1.0, BOARD_Z + 0.2],
+      span: k === COMPANIES.length - 1 ? 1.2 : 1,
+      fit: [1.15, 1.7],
+      map: [c.x, 0.3],
+    }),
+  ),
   // Coffee table.
   { id: 'sideProjects', pos: [0.1, 0.3, 0.1], target: [-1.3, -1.25, -2.2], span: 1.2, fit: [2, 1.4], map: [-1.3, -2.2] },
   // Floor lamp corner.
@@ -72,3 +84,17 @@ export function nearestStation(screens: number) {
 export function stationLabel(id: Station['id'], t: TFunction) {
   return id === 'hero' ? t('profile.name') : t(`labels.${id}`)
 }
+
+/** Consecutive stations with the same id form one section of the HUD. */
+export const SECTIONS = STATIONS.reduce<{ id: Station['id']; first: number; last: number }[]>((acc, s, i) => {
+  const prev = acc[acc.length - 1]
+  if (prev?.id === s.id) prev.last = i
+  else acc.push({ id: s.id, first: i, last: i })
+  return acc
+}, [])
+
+export function sectionOf(stationIndex: number) {
+  return SECTIONS.findIndex((s) => stationIndex >= s.first && stationIndex <= s.last)
+}
+
+export const EXPERIENCE = SECTIONS.find((s) => s.id === 'experience')!

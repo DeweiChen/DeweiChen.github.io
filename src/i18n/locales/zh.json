@@ -191,7 +191,9 @@
     "layout": "版面",
     "tour": "導覽",
     "webglUnavailable": "此裝置不支援 WebGL",
-    "link": "連結"
+    "link": "連結",
+    "details": "查看詳情",
+    "closeDetails": "點擊或按 Esc 關閉"
   },
   "format": {
     "present": "至今",

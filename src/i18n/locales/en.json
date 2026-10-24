@@ -191,7 +191,9 @@
     "layout": "Layout",
     "tour": "Tour",
     "webglUnavailable": "WebGL unavailable",
-    "link": "Link"
+    "link": "Link",
+    "details": "View details",
+    "closeDetails": "Click or Esc to close"
   },
   "format": {
     "present": "Present",

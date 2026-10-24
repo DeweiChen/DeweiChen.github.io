@@ -6,6 +6,7 @@ import { TourOverlay } from './TourOverlay'
 import { AboutFrame } from './AboutFrame'
 import { Bookshelf } from './Bookshelf'
 import { Room } from './Room'
+import { Timeline } from './Timeline'
 import { SplatPortrait, type PixelRect } from './SplatPortrait'
 import { STATIONS, tourPosition } from './stations'
 import { useScrollProgress, type ScrollProgress } from './useScrollProgress'
@@ -88,6 +89,7 @@ function Stage({ cardRect, direction, lowEnd, onMorphDone }: ImmersiveSceneProps
       <directionalLight position={[-2, 3, 2]} intensity={1.2} />
       <AboutFrame progress={progress} />
       <Bookshelf progress={progress} />
+      <Timeline progress={progress} />
       <SplatPortrait
         count={count}
         cardRect={cardRect}
