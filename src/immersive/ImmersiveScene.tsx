@@ -9,7 +9,7 @@ import { Bookshelf } from './Bookshelf'
 import { Contact } from './Contact'
 import { Education } from './Education'
 import { Room } from './Room'
-import { HALL, LIVING } from './roomLayout'
+import { LIVING } from './roomLayout'
 import { SideProjects } from './SideProjects'
 import { Timeline } from './Timeline'
 import { SplatPortrait, type PixelRect } from './SplatPortrait'
@@ -103,9 +103,7 @@ function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
     const needed = 1.1 * Math.max((h0 + (h1 - h0) * f) / 2 / tanHalf, (w0 + (w1 - w0) * f) / 2 / (tanHalf * (size.width / size.height)))
     if (needed > dist) {
       pos.addScaledVector(back, needed - dist)
-      // Stay inside whichever room the camera stands in.
-      const room = pos.z < LIVING.z1 ? LIVING : HALL
-      pos.x = Math.min(room.x1 - 0.2, Math.max(room.x0 + 0.2, pos.x))
+      pos.x = Math.min(LIVING.x1 - 0.2, Math.max(LIVING.x0 + 0.2, pos.x))
     }
 
     if (away > 0 && !sway.current.equals(pointer.current)) {

@@ -57,7 +57,7 @@ function FloorPlan({ position, current }: { position: number; current: number })
   const me = [ax + (bx - ax) * f, az + (bz - az) * f]
 
   return (
-    <svg viewBox={`0 0 ${PLAN_W} ${PLAN_H}`} className="h-auto w-full" style={{ aspectRatio: `${PLAN_W} / ${PLAN_H}` }} aria-hidden>
+    <svg viewBox={`0 0 ${PLAN_W} ${PLAN_H}`} className="mx-auto h-auto max-h-36 w-full sm:max-h-44" style={{ aspectRatio: `${PLAN_W} / ${PLAN_H}` }} aria-hidden>
       <polygon
         points={OUTLINE.map(([x, z]) => `${planX(x)},${planY(z)}`).join(' ')}
         className="fill-white/[0.03] stroke-white/25"

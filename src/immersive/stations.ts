@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next'
-import { CERTS, DOOR, GALLERY } from './roomLayout'
+import { CERTS, DOOR, FRONT_Z, GALLERY } from './roomLayout'
 import { BOARD_Z, COMPANIES } from './timelineLayout'
 
 type Vec3 = [number, number, number]
@@ -26,7 +26,7 @@ export interface Station {
  */
 export const STATIONS: Station[] = [
   // Longer first leg: the name dissolves, the room is scanned, then we walk in.
-  { id: 'hero', pos: [0, 0, 6], target: [0, 0, -4], span: 2, fit: [0, 0], map: [0, 2.6] },
+  { id: 'hero', pos: [0, 0, 6], target: [0, 0, -4], span: 2, fit: [0, 0], map: [0, FRONT_Z + 0.5] },
   // Picture frame above the sofa.
   { id: 'about', pos: [-1.25, 0.62, -1.5], target: [-1.4, 0.72, -4], span: 1.2, fit: [2.1, 1.45], map: [-1.4, -3.6] },
   // Bookshelf on the right wall.
@@ -43,17 +43,15 @@ export const STATIONS: Station[] = [
       map: [c.x, 0.3],
     }),
   ),
-  // Side projects: a walk along the gallery wing, one stop in front of each exhibit.
-  ...GALLERY.xs.map(
-    (x, k): Station => ({
+  // Side projects: a walk along the front of the right wall, one stop in front of each exhibit.
+  ...GALLERY.zs.map(
+    (z, k): Station => ({
       id: 'sideProjects',
-      pos: [x, -0.1, 3.0],
-      target: [x, -0.4, GALLERY.wallZ],
-      span: 1,
-      fit: [1.75, 2.15],
-      map: [x, GALLERY.caseZ],
-      // Back along the front of the hall before turning into the living room.
-      via: k === GALLERY.xs.length - 1 ? { pos: [2.2, 0.2, 1.6], target: [2.6, -0.2, -2.4] } : undefined,
+      pos: [GALLERY.wallX - 3.1, -0.1, z],
+      target: [GALLERY.wallX, -0.4, z],
+      span: k === GALLERY.zs.length - 1 ? 1.2 : 1,
+      fit: [1.45, 2.15],
+      map: [GALLERY.wallX - 0.3, z],
     }),
   ),
   // Certificates on the right wall, lit by the lamp.

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { useTranslation } from 'react-i18next'
-import type { Group } from 'three'
+import { MeshStandardMaterial, type Group, type Plane } from 'three'
 import homeeLogo from '@/assets/print/homee.png'
 import htcLogo from '@/assets/print/htc.png'
 import viveLogo from '@/assets/print/vive.png'
@@ -15,6 +15,7 @@ import { TextPlane } from './TextPlane'
 import { BOARD_H, BOARD_W, BOARD_Y, BOARD_Z, COMPANIES, headX, LINE_X, LINE_Z, xOfYear, YEAR0, YEAR1 } from './timelineLayout'
 import { drawLines, SANS, useCanvasTexture, wrapRuns, type Run } from './textCanvas'
 import { useOpenRequest } from './useOpenRequest'
+import { useScanClip } from './useScanClip'
 import type { ScrollProgress } from './useScrollProgress'
 
 type Company = Resume['experience'][number]
@@ -145,7 +146,7 @@ function TimelineFloor({ boards, walk }: { boards: BoardSpec[]; walk: () => numb
       height={DECAL.z1 - DECAL.z0}
       position={[(DECAL.x0 + DECAL.x1) / 2, FLOOR_Y + 0.025, (DECAL.z0 + DECAL.z1) / 2]}
       rotation={[-Math.PI / 2, 0, 0]}
-      reveal={() => smoothstep(-1.2, -0.6, walk())}
+      reveal={() => smoothstep(-1.2, -0.6, walk()) * (1 - smoothstep(COMPANIES.length - 0.6, COMPANIES.length - 0.1, walk()))}
       // Lit up to where the walk has reached, with a glowing head on the line.
       fill={() => [(headX(walk()) - DECAL.x0) / (DECAL.x1 - DECAL.x0), 1 - decalY(LINE_Z) / DECAL_PY]}
     />
@@ -159,6 +160,7 @@ function Board({
   groupRef,
   k,
   walk,
+  clip,
 }: {
   spec: BoardSpec
   selected: boolean
@@ -167,12 +169,15 @@ function Board({
   /** This board's stop, counted from the first company. */
   k: number
   walk: () => number
+  clip: Plane
 }) {
   const { t } = useTranslation()
   const logo = useImage(LOGOS[spec.company.id])
   const [hovered, setHovered] = useState(false)
   const lift = useRef(0)
   const inner = useRef<Group>(null)
+  const standMaterial = useMemo(() => new MeshStandardMaterial({ color: '#2a2b45', clippingPlanes: [clip] }), [clip])
+  useEffect(() => () => standMaterial.dispose(), [standMaterial])
   // Rises out of the floor as the walk approaches; only the board at the current stop is lit.
   const arrive = () => smoothstep(k - 0.9, k - 0.25, walk())
   const focus = () => Math.max(0, 1 - Math.abs(walk() - k))
@@ -252,14 +257,12 @@ function Board({
 
   const standH = BOARD_Y - BOARD_H / 2 - FLOOR_Y
   return (
-    <group ref={outer} position={[spec.x, 0, BOARD_Z]}>
-      <mesh position={[0, FLOOR_Y + standH / 2, -0.02]}>
+    <group ref={outer} position={[spec.x, 0, BOARD_Z]} visible={false}>
+      <mesh material={standMaterial} position={[0, FLOOR_Y + standH / 2, -0.02]}>
         <boxGeometry args={[0.025, standH, 0.025]} />
-        <meshStandardMaterial color="#2a2b45" />
       </mesh>
-      <mesh position={[0, FLOOR_Y + 0.03, -0.02]}>
+      <mesh material={standMaterial} position={[0, FLOOR_Y + 0.03, -0.02]}>
         <boxGeometry args={[0.3, 0.02, 0.2]} />
-        <meshStandardMaterial color="#2a2b45" />
       </mesh>
       <group ref={inner}>
         <group ref={groupRef} position={[0, BOARD_Y, 0]}>
@@ -349,6 +352,7 @@ function paintDetail(ctx: CanvasRenderingContext2D, company: Company, logo: HTML
 export function Timeline({ progress }: { progress: RefObject<ScrollProgress> }) {
   const boards = useBoardSpecs()
   const logos = useLogos()
+  const clip = useScanClip(progress)
   const [selected, setSelected] = useState<number | null>(null)
   const groups = useRef<(Group | null)[]>([])
   // The board the reader flies back into after it is closed.
@@ -395,6 +399,7 @@ export function Timeline({ progress }: { progress: RefObject<ScrollProgress> }) 
           }}
           k={i}
           walk={walk}
+          clip={clip}
         />
       ))}
       <Reader

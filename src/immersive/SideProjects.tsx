@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, type RefObject } from 'react'
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { useTranslation } from 'react-i18next'
-import { BoxGeometry, DoubleSide, EdgesGeometry, type Group } from 'three'
+import { BoxGeometry, DoubleSide, EdgesGeometry, MeshStandardMaterial, type Group, type Plane } from 'three'
 import { useResume, type Resume } from '@/i18n/useResume'
 import { paintAppScreen } from './appScreens'
 import { CYAN, MUTED, panelBackground, TEXT, type PanelLayout } from './panel'
@@ -11,6 +11,7 @@ import { SIDE_PROJECTS, tourPosition } from './stations'
 import { TextPlane } from './TextPlane'
 import { drawLines, SANS, useCanvasTexture, wrapRuns } from './textCanvas'
 import { useOpenRequest } from './useOpenRequest'
+import { useScanClip } from './useScanClip'
 import type { ScrollProgress } from './useScrollProgress'
 
 type Project = Resume['sideProjects'][number]
@@ -23,7 +24,7 @@ const SCREEN = { w: PHONE.w * 0.92, h: PHONE.h * 0.95 }
 const SPX = 512
 const SPY = Math.round((SPX * SCREEN.h) / SCREEN.w)
 /** Museum-style wall text above each case. */
-const LABEL = { w: 1.6, h: 0.86, y: 0.32 }
+const LABEL = { w: 1.28, h: 0.76, y: 0.32 }
 const LPX = 1536
 const LPY = Math.round((LPX * LABEL.h) / LABEL.w)
 const GLASS_EDGES = new EdgesGeometry(new BoxGeometry(GLASS.w, GLASS.h, GLASS.w))
@@ -218,32 +219,38 @@ function useWallLabel(project: Project, index: number) {
 function Exhibit({
   project,
   index,
-  x,
+  z,
   walk,
   selected,
   reading,
   onSelect,
   labelRef,
+  clip,
 }: {
   project: Project
   index: number
-  x: number
+  z: number
   walk: () => number
   selected: boolean
   reading: boolean
   onSelect: () => void
   labelRef: (g: Group | null) => void
+  clip: Plane
 }) {
   const [hovered, setHovered] = useState(false)
   const lift = useRef(0)
   const stand = useRef<Group>(null)
   const label = useWallLabel(project, index)
+  const pedestalMaterial = useMemo(() => new MeshStandardMaterial({ color: '#3a3d63', roughness: 0.8, clippingPlanes: [clip] }), [clip])
+  useEffect(() => () => pedestalMaterial.dispose(), [pedestalMaterial])
   // Rises out of the floor as the walk approaches, like the Experience boards; lit while it is the current stop.
   const arrive = () => smoothstep(index - 0.9, index - 0.25, walk())
   const focus = () => Math.max(0, 1 - Math.abs(walk() - index))
+  // Past the last stop the exhibits sink back down, clearing the view across the room.
+  const shown = () => arrive() * (1 - smoothstep(GALLERY.zs.length - 0.6, GALLERY.zs.length - 0.1, walk()))
   const glow = () => lift.current * 0.3 - (1 - focus()) * 0.45
   // Only animate the exhibit's prop and phone while this stop is in view and the detail reader is closed.
-  const active = () => !reading && arrive() > 0.001 && walk() < index + 0.75
+  const active = () => !reading && shown() > 0.001 && walk() < index + 0.75
 
   useEffect(() => {
     if (!hovered) return
@@ -263,7 +270,7 @@ function Exhibit({
       }
       invalidate()
     }
-    const a = arrive()
+    const a = shown()
     const g = stand.current!
     g.position.y = -(1 - a) * (PEDESTAL.h + GLASS.h + 0.1)
     g.visible = a > 0.001
@@ -282,14 +289,13 @@ function Exhibit({
   }
 
   return (
-    <group position={[x, 0, 0]}>
-      <group ref={labelRef} position={[0, LABEL.y, GALLERY.wallZ + 0.025]}>
-        <TextPlane map={label} width={LABEL.w} height={LABEL.h} reveal={arrive} glow={glow} {...handlers} />
+    <group position={[0, 0, z]}>
+      <group ref={labelRef} position={[GALLERY.wallX - 0.025, LABEL.y, 0]} rotation={[0, -Math.PI / 2, 0]}>
+        <TextPlane map={label} width={LABEL.w} height={LABEL.h} reveal={shown} glow={glow} {...handlers} />
       </group>
-      <group ref={stand} position={[0, 0, GALLERY.caseZ]} visible={false} {...handlers}>
-        <mesh position={[0, FLOOR_Y + PEDESTAL.h / 2, 0]}>
+      <group ref={stand} position={[GALLERY.caseX, 0, 0]} rotation={[0, -Math.PI / 2, 0]} visible={false} {...handlers}>
+        <mesh material={pedestalMaterial} position={[0, FLOOR_Y + PEDESTAL.h / 2, 0]}>
           <boxGeometry args={[PEDESTAL.w, PEDESTAL.h, PEDESTAL.w]} />
-          <meshStandardMaterial color="#3a3d63" roughness={0.8} />
           <lineSegments geometry={PEDESTAL_EDGES} raycast={() => null}>
             <lineBasicMaterial color={CYAN} transparent opacity={0.22} />
           </lineSegments>
@@ -299,7 +305,7 @@ function Exhibit({
           <meshBasicMaterial color={CYAN} transparent opacity={0.12} />
         </mesh>
         <group position={[0, TOP + GLASS.h / 2 + 0.03, 0]}>
-          <Phone id={project.id} reveal={arrive} glow={glow} active={active} />
+          <Phone id={project.id} reveal={shown} glow={glow} active={active} />
           <Prop id={project.id} active={active} />
         </group>
         <group position={[0, TOP + GLASS.h / 2, 0]}>
@@ -360,6 +366,7 @@ function paintProject(ctx: CanvasRenderingContext2D, project: Project, { px, py,
 export function SideProjects({ progress }: { progress: RefObject<ScrollProgress> }) {
   const { t } = useTranslation()
   const { sideProjects } = useResume()
+  const clip = useScanClip(progress)
   const [selected, setSelected] = useState<number | null>(null)
   const [last, setLast] = useState<number | null>(null)
   if (selected !== null && selected !== last) setLast(selected)
@@ -382,7 +389,7 @@ export function SideProjects({ progress }: { progress: RefObject<ScrollProgress>
           key={p.id}
           project={p}
           index={i}
-          x={GALLERY.xs[i]}
+          z={GALLERY.zs[i]}
           walk={walk}
           selected={selected === i}
           reading={selected !== null}
@@ -390,6 +397,7 @@ export function SideProjects({ progress }: { progress: RefObject<ScrollProgress>
           labelRef={(g) => {
             labels.current[i] = g
           }}
+          clip={clip}
         />
       ))}
       <Reader
