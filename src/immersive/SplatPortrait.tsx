@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { AdditiveBlending, BufferAttribute, BufferGeometry, ShaderMaterial, Vector2, Vector4 } from 'three'
 import vertexShader from './splat.vert?raw'
 import fragmentShader from './splat.frag?raw'
 import { useMouseWorld } from './useMouseWorld'
+import { sampleEdges } from './roomLayout'
+import type { ScrollProgress } from './useScrollProgress'
 
 export interface PixelRect {
   x: number
@@ -19,6 +21,8 @@ interface SplatPortraitProps {
   /** 1 = show portrait, 0 = collapse back onto the card. */
   morphTarget: 0 | 1
   onMorphDone?: (target: 0 | 1) => void
+  progress: RefObject<ScrollProgress>
+  lowEnd: boolean
 }
 
 const MORPH_SECONDS = 1.6
@@ -62,7 +66,7 @@ function samplePortrait(count: number) {
   return { positions: out, aspect: w / h }
 }
 
-function buildGeometry(count: number) {
+function buildGeometry(count: number, lowEnd: boolean) {
   const { positions, aspect } = samplePortrait(count)
   const planeUV = new Float32Array(count * 2)
   const colors = new Float32Array(count * 3)
@@ -88,18 +92,18 @@ function buildGeometry(count: number) {
   // `position` is unused by the shader but three needs it for draw-range/bounds.
   geo.setAttribute('position', new BufferAttribute(new Float32Array(count * 3), 3))
   geo.setAttribute('aTarget', new BufferAttribute(positions, 3))
+  geo.setAttribute('aRoom', new BufferAttribute(sampleEdges(count, lowEnd), 3))
   geo.setAttribute('aPlaneUV', new BufferAttribute(planeUV, 2))
   geo.setAttribute('aColor', new BufferAttribute(colors, 3))
   geo.setAttribute('aSeed', new BufferAttribute(seeds, 1))
   return { geo, aspect }
 }
 
-export function SplatPortrait({ count, cardRect, morphTarget, onMorphDone }: SplatPortraitProps) {
+export function SplatPortrait({ count, cardRect, morphTarget, onMorphDone, progress, lowEnd }: SplatPortraitProps) {
   const { viewport, size, gl } = useThree()
   const mouse = useMouseWorld()
-  const { geo, aspect } = useMemo(() => buildGeometry(count), [count])
+  const { geo, aspect } = useMemo(() => buildGeometry(count, lowEnd), [count, lowEnd])
   const morph = useRef(cardRect ? 0 : 1)
-  const scatter = useRef(0)
   const reported = useRef<0 | 1 | null>(cardRect ? null : 1)
 
   const material = useMemo(
@@ -113,7 +117,8 @@ export function SplatPortrait({ count, cardRect, morphTarget, onMorphDone }: Spl
         uniforms: {
           uTime: { value: 0 },
           uMorph: { value: cardRect ? 0 : 1 },
-          uScatter: { value: 0 },
+          uAssemble: { value: 0 },
+          uFade: { value: 1 },
           uSize: { value: 30 },
           uPixelRatio: { value: 1 },
           uRect: { value: new Vector4() },
@@ -168,14 +173,17 @@ export function SplatPortrait({ count, cardRect, morphTarget, onMorphDone }: Spl
       onMorphDone?.(morphTarget)
     }
 
-    const targetScatter = Math.min(1, window.scrollY / (window.innerHeight * 0.9))
-    scatter.current += (targetScatter - scatter.current) * (1 - Math.exp(-dt * 6))
-    u.uScatter.value = scatter.current
+    // First screen of scrolling: the name flies apart into the room's point cloud,
+    // which then gives way to the wireframe.
+    const { screens } = progress.current
+    const assemble = Math.min(1, screens / 0.6)
+    u.uAssemble.value = assemble
+    u.uFade.value = 1 - Math.min(1, Math.max(0, (screens - 0.6) / 0.5))
 
     const m = mouse.current
     u.uMouse.value.copy(m.world)
     u.uMouseVel.value.copy(m.velocity).clampLength(0, 8)
-    u.uMouseStrength.value = m.strength * (1 - scatter.current * 0.6)
+    u.uMouseStrength.value = m.strength * (1 - assemble * 0.6)
   })
 
   return <points geometry={geo} material={material} frustumCulled={false} />

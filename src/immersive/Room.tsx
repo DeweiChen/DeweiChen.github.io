@@ -1,0 +1,70 @@
+import { useEffect, useMemo, type RefObject } from 'react'
+import { useFrame } from '@react-three/fiber'
+import { ShaderMaterial, Vector2 } from 'three'
+import vertexShader from './room.vert?raw'
+import fragmentShader from './room.frag?raw'
+import wireFragmentShader from './roomWire.frag?raw'
+import { buildRoomEdges, buildRoomGeometry, CEILING_Y, FLOOR_Y } from './roomLayout'
+import type { ScrollProgress } from './useScrollProgress'
+
+const smoothstep = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)))
+  return t * t * (3 - 2 * t)
+}
+
+/**
+ * The scroll story after the name: the point cloud settles into a wireframe
+ * room, then a scan plane sweeps floor to ceiling and leaves solid surfaces behind.
+ */
+export function Room({ progress, lowEnd }: { progress: RefObject<ScrollProgress>; lowEnd: boolean }) {
+  const mesh = useMemo(() => buildRoomGeometry(lowEnd), [lowEnd])
+  const edges = useMemo(() => buildRoomEdges(lowEnd), [lowEnd])
+
+  const [solid, wire] = useMemo(() => {
+    const width = new Vector2(-3.2, 3.2)
+    return [
+      new ShaderMaterial({
+        vertexShader,
+        fragmentShader,
+        // Push faces back so the edge lines lying on them never z-fight.
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 1,
+        uniforms: { uScan: { value: FLOOR_Y - 1 }, uTime: { value: 0 }, uWidth: { value: width } },
+      }),
+      new ShaderMaterial({
+        vertexShader,
+        fragmentShader: wireFragmentShader,
+        transparent: true,
+        depthWrite: false,
+        uniforms: { uScan: { value: FLOOR_Y - 1 }, uWire: { value: 0 }, uWidth: { value: width } },
+      }),
+    ]
+  }, [])
+
+  useEffect(() => () => {
+    mesh.dispose()
+    edges.dispose()
+  }, [mesh, edges])
+  useEffect(() => () => {
+    solid.dispose()
+    wire.dispose()
+  }, [solid, wire])
+
+  useFrame((state) => {
+    // Both happen on the first leg of the tour, while the camera walks in from the hero stop.
+    const { screens } = progress.current
+    const scan = FLOOR_Y - 0.05 + smoothstep(0.7, 1.5, screens) * (CEILING_Y - FLOOR_Y + 0.8)
+    solid.uniforms.uScan.value = scan
+    solid.uniforms.uTime.value = state.clock.elapsedTime
+    wire.uniforms.uScan.value = scan
+    wire.uniforms.uWire.value = smoothstep(0.4, 0.8, screens)
+  })
+
+  return (
+    <>
+      <mesh geometry={mesh} material={solid} frustumCulled={false} />
+      <lineSegments geometry={edges} material={wire} frustumCulled={false} />
+    </>
+  )
+}

@@ -2,9 +2,11 @@
 // Each particle lives on two shapes: a flat rectangle matching the 2D hero card
 // (aPlaneUV) and the name portrait (aTarget). uMorph blends between them, and
 // the cursor pushes particles away on top of whichever shape is showing.
+// Scrolling then flies them onto the room's edges (aRoom), a point cloud scan.
 uniform float uTime;
 uniform float uMorph;      // 0 = flat card, 1 = portrait
-uniform float uScatter;    // 0..1, grows as the page scrolls
+uniform float uAssemble;   // 0 = name, 1 = on the room's edges
+uniform float uFade;       // dims the point cloud once the wireframe takes over
 uniform float uSize;
 uniform float uPixelRatio;
 uniform vec4 uRect;        // card in world units: center.xy, size.xy
@@ -16,6 +18,7 @@ uniform float uRadius;
 
 attribute vec2 aPlaneUV;
 attribute vec3 aTarget;
+attribute vec3 aRoom;
 attribute vec3 aColor;
 attribute float aSeed;
 
@@ -44,8 +47,11 @@ void main() {
   pos.y += cos(uTime * 0.6 + aSeed * 31.0) * 0.015;
   pos.z += sin(uTime * 0.5 + aSeed * 23.0) * 0.04;
 
-  // Scrolling dissolves the portrait into a deep star field behind the content.
-  pos += burstDir * uScatter * (1.5 + aSeed * 7.0);
+  // Scrolling flies each particle onto the room in a staggered arc.
+  float a = clamp((uAssemble - aSeed * 0.35) / 0.65, 0.0, 1.0);
+  a = a * a * (3.0 - 2.0 * a);
+  vec3 room = aRoom + vec3(sin(aSeed * 71.0), cos(aSeed * 37.0), sin(aSeed * 13.0)) * 0.012;
+  pos = mix(pos, room, a) + burstDir * sin(a * 3.14159) * 1.2;
 
   // Cursor repulsion; particles fall back on their own once the cursor leaves.
   vec2 diff = pos.xy - uMouse;
@@ -62,5 +68,5 @@ void main() {
   gl_PointSize = uSize * (0.55 + aSeed * 0.9) * uPixelRatio * (1.0 + f * 0.2) / -mv.z;
 
   vColor = aColor * (1.0 + f * 0.3);
-  vAlpha = mix(0.42, 0.3, uScatter);
+  vAlpha = mix(0.42, 0.6, a) * uFade;
 }
