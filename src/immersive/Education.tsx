@@ -1,6 +1,6 @@
 import { useEffect, useMemo, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { AdditiveBlending, MeshBasicMaterial } from 'three'
+import { AdditiveBlending, Color, MeshBasicMaterial } from 'three'
 import { useResume, type Resume } from '@/i18n/useResume'
 import { CERTS, LAMP } from './roomLayout'
 import { STATIONS, stationPresence } from './stations'
@@ -15,7 +15,8 @@ const SERIF = `Georgia, "Songti TC", "Noto Serif TC", ${SANS}`
 const GOLD = '#d8b871'
 const PX = 1024
 const PY = Math.round((PX * CERTS.size[1]) / CERTS.size[0])
-const WARM = '#c98d4a'
+// Soft warm amber for the lampshade, gently glowing without overpowering bloom.
+const WARM = new Color('#f0b86a').multiplyScalar(1.3)
 
 /** A diploma: dark paper with a gold border, degree in the middle, the note in small print. */
 function Certificate({ degree, y, presence }: { degree: Degree; y: number; presence: () => number }) {
@@ -86,27 +87,44 @@ function Certificate({ degree, y, presence }: { degree: Degree; y: number; prese
       rotation={[0, -Math.PI / 2, 0]}
       reveal={() => Math.min(1, presence() * 1.4)}
       // Lit by the lamp once it is on.
-      glow={() => presence() * 0.15}
+      glow={() => presence() * 0.18}
     />
   )
 }
 
-/** Warm light spilling on the wall around the certificates. */
+/** Warm light spilling on the wall around the certificates without any green tint. */
 function LightPool({ presence }: { presence: () => number }) {
-  const S = 256
+  const S = 512
   const map = useCanvasTexture(
     S,
     S,
     (ctx) => {
-      const g = ctx.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2)
-      g.addColorStop(0, 'rgba(255, 207, 138, 0.55)')
-      g.addColorStop(0.5, 'rgba(255, 190, 120, 0.18)')
-      g.addColorStop(1, 'rgba(255, 190, 120, 0)')
+      // Lamp sits towards the back-right corner (left side on texture space)
+      const cx = S * 0.4
+      const cy = S * 0.48
+
+      // Soft elliptical falloff along the wall towards the certificates
+      ctx.save()
+      ctx.translate(cx, cy)
+      ctx.scale(1.2, 1.0)
+
+      // Red-dominant warm amber gradient: strictly prevents any green/olive tint on navy walls
+      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, S * 0.46)
+      g.addColorStop(0, 'rgba(255, 175, 50, 0.28)')
+      g.addColorStop(0.25, 'rgba(255, 140, 35, 0.16)')
+      g.addColorStop(0.5, 'rgba(255, 105, 20, 0.07)')
+      g.addColorStop(0.75, 'rgba(255, 75, 10, 0.02)')
+      g.addColorStop(1, 'rgba(255, 50, 0, 0)')
+
       ctx.fillStyle = g
-      ctx.fillRect(0, 0, S, S)
+      ctx.beginPath()
+      ctx.arc(0, 0, S * 0.46, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
     },
     [],
   )
+
   const material = useMemo(
     () => new MeshBasicMaterial({ map, transparent: true, blending: AdditiveBlending, depthWrite: false, opacity: 0, toneMapped: false }),
     [map],
@@ -118,7 +136,7 @@ function LightPool({ presence }: { presence: () => number }) {
 
   return (
     <mesh material={material} position={[CERTS.x - 0.01, 0.35, (CERTS.z + LAMP.z) / 2]} rotation={[0, -Math.PI / 2, 0]}>
-      <planeGeometry args={[2.4, 2.4]} />
+      <planeGeometry args={[2.6, 2.4]} />
     </mesh>
   )
 }
@@ -136,9 +154,9 @@ export function Education({ progress }: { progress: RefObject<ScrollProgress> })
   return (
     <>
       <LightPool presence={presence} />
-      {/* The shade glows from inside; bloom does the rest. */}
+      {/* The shade glows from inside with gentle bloom. */}
       <mesh material={bulb} position={[LAMP.x, LAMP.shadeY, LAMP.z]}>
-        <boxGeometry args={[LAMP.shade + 0.004, 0.342, LAMP.shade + 0.004]} />
+        <boxGeometry args={[LAMP.shade + 0.006, 0.344, LAMP.shade + 0.006]} />
       </mesh>
       {education.slice(0, CERTS.ys.length).map((d, i) => (
         <Certificate key={d.id} degree={d} y={CERTS.ys[i]} presence={presence} />
