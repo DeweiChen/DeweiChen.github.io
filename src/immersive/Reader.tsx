@@ -73,9 +73,17 @@ export function Reader<T>({
     [shown, px, py, share, wide, size.height, t, ...deps],
   )
 
-  useFrame((_, dt) => {
+  useFrame(({ invalidate }, dt) => {
     const g = group.current!
-    open.current = MathUtils.damp(open.current, item ? 1 : 0, 8, dt)
+    const target = item ? 1 : 0
+    if (open.current !== target) {
+      if (Math.abs(target - open.current) > 1e-4) {
+        open.current = MathUtils.damp(open.current, target, 8, Math.min(dt, 0.05))
+      } else {
+        open.current = target
+      }
+      invalidate()
+    }
     const src = source()
     g.visible = open.current > 0.01 && !!src
     if (!g.visible || !src) return

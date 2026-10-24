@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { AdditiveBlending, BufferAttribute, BufferGeometry, ShaderMaterial, Vector2, Vector4 } from 'three'
+import { AdditiveBlending, BufferAttribute, BufferGeometry, ShaderMaterial, Vector2, Vector4, type Points } from 'three'
 import vertexShader from './splat.vert?raw'
 import fragmentShader from './splat.frag?raw'
 import { useMouseWorld } from './useMouseWorld'
@@ -100,9 +100,10 @@ function buildGeometry(count: number, lowEnd: boolean) {
 }
 
 export function SplatPortrait({ count, cardRect, morphTarget, onMorphDone, progress, lowEnd }: SplatPortraitProps) {
-  const { viewport, size, gl } = useThree()
+  const { viewport, size, gl, invalidate } = useThree()
   const mouse = useMouseWorld()
   const { geo, aspect } = useMemo(() => buildGeometry(count, lowEnd), [count, lowEnd])
+  const points = useRef<Points>(null)
   const morph = useRef(cardRect ? 0 : 1)
   const reported = useRef<0 | 1 | null>(cardRect ? null : 1)
 
@@ -140,9 +141,18 @@ export function SplatPortrait({ count, cardRect, morphTarget, onMorphDone, progr
 
   useEffect(() => {
     reported.current = null
-  }, [morphTarget])
+    invalidate()
+  }, [morphTarget, invalidate])
 
   useFrame((state, dt) => {
+    const { screens } = progress.current
+    const assemble = Math.min(1, screens / 0.6)
+    const fade = 1 - Math.min(1, Math.max(0, (screens - 0.6) / 0.5))
+    const morphing = morph.current !== morphTarget || reported.current !== morphTarget
+    const visible = fade > 0 || morphing
+    if (points.current) points.current.visible = visible
+    if (!visible) return
+
     const u = material.uniforms
     u.uTime.value = state.clock.elapsedTime
     u.uPixelRatio.value = gl.getPixelRatio()
@@ -165,7 +175,7 @@ export function SplatPortrait({ count, cardRect, morphTarget, onMorphDone, progr
     u.uPortrait.value = [scale, viewport.height * (portraitScreen ? 0.2 : 0.08), 0]
     u.uRadius.value = Math.max(0.5, scale * 0.3)
 
-    const step = dt / MORPH_SECONDS
+    const step = Math.min(dt, 0.05) / MORPH_SECONDS
     morph.current = morphTarget === 1 ? Math.min(1, morph.current + step) : Math.max(0, morph.current - step)
     u.uMorph.value = morph.current
     if (morph.current === morphTarget && reported.current !== morphTarget) {
@@ -175,16 +185,16 @@ export function SplatPortrait({ count, cardRect, morphTarget, onMorphDone, progr
 
     // First screen of scrolling: the name flies apart into the room's point cloud,
     // which then gives way to the wireframe.
-    const { screens } = progress.current
-    const assemble = Math.min(1, screens / 0.6)
     u.uAssemble.value = assemble
-    u.uFade.value = 1 - Math.min(1, Math.max(0, (screens - 0.6) / 0.5))
+    u.uFade.value = fade
 
     const m = mouse.current
     u.uMouse.value.copy(m.world)
     u.uMouseVel.value.copy(m.velocity).clampLength(0, 8)
     u.uMouseStrength.value = m.strength * (1 - assemble * 0.6)
+
+    state.invalidate()
   })
 
-  return <points geometry={geo} material={material} frustumCulled={false} />
+  return <points ref={points} geometry={geo} material={material} frustumCulled={false} />
 }

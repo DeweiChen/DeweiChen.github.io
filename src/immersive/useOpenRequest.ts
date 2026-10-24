@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { OPEN_EVENT, type OpenDetail } from './panel'
 
 /**
@@ -8,15 +8,19 @@ import { OPEN_EVENT, type OpenDetail } from './panel'
  */
 export function useOpenRequest(id: OpenDetail['id'], walk: () => number, open: (index: number) => void) {
   const pending = useRef<number | null>(null)
+  const invalidate = useThree((s) => s.invalidate)
 
   useEffect(() => {
     const onOpen = (e: Event) => {
       const detail = (e as CustomEvent<OpenDetail>).detail
-      if (detail.id === id) pending.current = detail.index
+      if (detail.id === id) {
+        pending.current = detail.index
+        invalidate()
+      }
     }
     window.addEventListener(OPEN_EVENT, onOpen)
     return () => window.removeEventListener(OPEN_EVENT, onOpen)
-  }, [id])
+  }, [id, invalidate])
 
   useFrame(() => {
     if (pending.current !== null && Math.abs(walk() - pending.current) < 0.3) {

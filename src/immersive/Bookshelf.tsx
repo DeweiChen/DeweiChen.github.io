@@ -77,8 +77,16 @@ function Book({ spec, clip, visible }: { spec: BookSpec; clip: Plane; visible: (
     }
   }, [hovered])
 
-  useFrame((_, dt) => {
-    pull.current += ((hovered ? 1 : 0) - pull.current) * (1 - Math.exp(-dt * 12))
+  useFrame(({ invalidate }, dt) => {
+    const target = hovered ? 1 : 0
+    if (pull.current !== target) {
+      if (Math.abs(target - pull.current) > 1e-4) {
+        pull.current += (target - pull.current) * (1 - Math.exp(-Math.min(dt, 0.05) * 12))
+      } else {
+        pull.current = target
+      }
+      invalidate()
+    }
     const g = group.current!
     g.position.x = spec.pos[0] - pull.current * PULL
     g.rotation.z = pull.current * 0.06

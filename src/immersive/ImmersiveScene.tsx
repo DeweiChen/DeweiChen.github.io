@@ -1,5 +1,5 @@
 import { useEffect, useRef, type RefObject } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { CatmullRomCurve3, Quaternion, Vector2, Vector3, type PerspectiveCamera } from 'three'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { TourOutline } from './TourOutline'
@@ -54,6 +54,7 @@ const tmp = { pos: new Vector3(), target: new Vector3(), back: new Vector3(), ri
  * morph lines up with the DOM; head-sway fades in after.
  */
 function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
+  const invalidate = useThree((s) => s.invalidate)
   const pointer = useRef(new Vector2())
   const sway = useRef(new Vector2())
   const lastScreens = useRef<number | null>(null)
@@ -69,12 +70,17 @@ function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
   })
 
   useEffect(() => {
-    const move = (e: PointerEvent) => pointer.current.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1)
+    const move = (e: PointerEvent) => {
+      pointer.current.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1)
+      if (progress.current.screens > 0) invalidate()
+    }
     window.addEventListener('pointermove', move, { passive: true })
     return () => window.removeEventListener('pointermove', move)
-  }, [])
+  }, [invalidate, progress])
 
+  // Priority -1 runs after useScrollProgress (-2) and before scene objects (0) such as Reader.
   useFrame(({ camera, size }, dt) => {
+    const d = Math.min(dt, 0.05)
     const { screens } = progress.current
     const u = pathParam(tourPosition(screens))
     const { pos, target, back, right } = tmp
@@ -102,7 +108,14 @@ function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
       pos.x = Math.min(room.x1 - 0.2, Math.max(room.x0 + 0.2, pos.x))
     }
 
-    sway.current.lerp(pointer.current, 1 - Math.exp(-dt * 3))
+    if (away > 0 && !sway.current.equals(pointer.current)) {
+      if (sway.current.distanceToSquared(pointer.current) > 1e-6) {
+        sway.current.lerp(pointer.current, 1 - Math.exp(-d * 3))
+      } else {
+        sway.current.copy(pointer.current)
+      }
+      invalidate()
+    }
     right.crossVectors(camera.up, back).normalize()
     pos.addScaledVector(right, sway.current.x * 0.15 * away)
     pos.y += sway.current.y * 0.1 * away
@@ -121,7 +134,7 @@ function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
     }
     lastScreens.current = screens
     if (f0.active) {
-      f0.t = Math.min(1, f0.t + dt / FLIGHT_SECONDS)
+      f0.t = Math.min(1, f0.t + d / FLIGHT_SECONDS)
       const e = f0.t * f0.t * (3 - 2 * f0.t)
       f0.pos.lerpVectors(f0.from, camera.position, e)
       f0.pos.y += Math.sin(Math.PI * e) * FLIGHT_LIFT
@@ -129,10 +142,11 @@ function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
       camera.position.copy(f0.pos)
       camera.quaternion.copy(f0.q)
       if (f0.t >= 1) f0.active = false
+      invalidate()
     }
     f0.last.copy(camera.position)
     f0.lastQ.copy(camera.quaternion)
-  })
+  }, -1)
   return null
 }
 
@@ -169,6 +183,7 @@ export default function ImmersiveScene(props: ImmersiveSceneProps) {
     <>
       <div className="fixed inset-0 z-0" aria-hidden>
         <Canvas
+          frameloop="demand"
           dpr={[1, 2]}
           camera={{ position: STATIONS[0].pos, fov: 45 }}
           gl={{ antialias: false, powerPreference: 'high-performance' }}

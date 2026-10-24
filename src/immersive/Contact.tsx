@@ -102,6 +102,7 @@ function WallButton({
   clip: Plane
   presence: () => number
 }) {
+  const invalidate = useThree((s) => s.invalidate)
   const button = usePortrait() ? BUTTON_TALL : BUTTON
   const [hovered, setHovered] = useState(false)
   const press = useRef(0)
@@ -134,8 +135,13 @@ function WallButton({
   )
 
   useFrame((_, dt) => {
-    pop.current = MathUtils.damp(pop.current, hovered ? 1 : 0, 12, dt)
-    press.current = MathUtils.damp(press.current, 0, 10, dt)
+    const d = Math.min(dt, 0.05)
+    const popTarget = hovered ? 1 : 0
+    if (pop.current !== popTarget || press.current !== 0) {
+      pop.current = Math.abs(popTarget - pop.current) > 1e-4 ? MathUtils.damp(pop.current, popTarget, 12, d) : popTarget
+      press.current = press.current > 1e-4 ? MathUtils.damp(press.current, 0, 10, d) : 0
+      invalidate()
+    }
     group.current!.position.x = WALL + BUTTON.d / 2 + pop.current * 0.03 - press.current * 0.04
   })
 
@@ -160,6 +166,7 @@ function WallButton({
         onClick={(e) => {
           e.stopPropagation()
           press.current = 1
+          invalidate()
           window.open(href, href.startsWith('mailto:') ? '_self' : '_blank', 'noopener')
         }}
       />
@@ -220,8 +227,16 @@ function Door({ clip, presence, onExit }: { clip: Plane; presence: () => number;
     return () => clearTimeout(id)
   }, [pushed, onExit])
 
-  useFrame((_, dt) => {
-    swing.current = MathUtils.damp(swing.current, pushed ? 1 : hovered ? 0.2 : 0, pushed ? 4 : 8, dt)
+  useFrame(({ invalidate }, dt) => {
+    const target = pushed ? 1 : hovered ? 0.2 : 0
+    if (swing.current !== target) {
+      if (Math.abs(target - swing.current) > 1e-4) {
+        swing.current = MathUtils.damp(swing.current, target, pushed ? 4 : 8, Math.min(dt, 0.05))
+      } else {
+        swing.current = target
+      }
+      invalidate()
+    }
     // Swings outwards, away from the room.
     hinge.current!.rotation.y = -swing.current * 1.35
     light.opacity = Math.min(1, swing.current * 3) * presence()

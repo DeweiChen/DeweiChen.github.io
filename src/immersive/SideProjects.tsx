@@ -84,12 +84,15 @@ function drawGlyph(ctx: CanvasRenderingContext2D, id: string, x: number, y: numb
 }
 
 /** A small prop beside the phone that says what the app is about. */
-function Prop({ id }: { id: string }) {
+function Prop({ id, active }: { id: string; active: () => boolean }) {
   const group = useRef<Group>(null)
   const led = useRef<Group>(null)
-  useFrame(({ clock }, dt) => {
-    if (group.current) group.current.rotation.y += dt * 0.6
+  useFrame(({ clock, invalidate }, dt) => {
+    if (!active()) return
+    const d = Math.min(dt, 0.05)
+    if (group.current) group.current.rotation.y += d * 0.6
     if (led.current) led.current.visible = Math.sin(clock.elapsedTime * 5) > -0.3
+    invalidate()
   })
 
   if (id === 'smartHome') {
@@ -144,11 +147,13 @@ function Prop({ id }: { id: string }) {
 }
 
 /** The app itself: a phone showing its screen, turning gently from side to side. */
-function Phone({ id, reveal, glow }: { id: string; reveal: () => number; glow: () => number }) {
+function Phone({ id, reveal, glow, active }: { id: string; reveal: () => number; glow: () => number; active: () => boolean }) {
   const group = useRef<Group>(null)
   const map = useCanvasTexture(SPX, SPY, (ctx) => paintAppScreen(ctx, id, SPX, SPY), [id])
-  useFrame(({ clock }) => {
+  useFrame(({ clock, invalidate }) => {
+    if (!active()) return
     group.current!.rotation.y = Math.sin(clock.elapsedTime * 0.5) * 0.35
+    invalidate()
   })
   return (
     <group ref={group} rotation={[-0.08, 0, 0]}>
@@ -216,6 +221,7 @@ function Exhibit({
   x,
   walk,
   selected,
+  reading,
   onSelect,
   labelRef,
 }: {
@@ -224,6 +230,7 @@ function Exhibit({
   x: number
   walk: () => number
   selected: boolean
+  reading: boolean
   onSelect: () => void
   labelRef: (g: Group | null) => void
 }) {
@@ -235,6 +242,8 @@ function Exhibit({
   const arrive = () => smoothstep(index - 0.9, index - 0.25, walk())
   const focus = () => Math.max(0, 1 - Math.abs(walk() - index))
   const glow = () => lift.current * 0.3 - (1 - focus()) * 0.45
+  // Only animate the exhibit's prop and phone while this stop is in view and the detail reader is closed.
+  const active = () => !reading && arrive() > 0.001 && walk() < index + 0.75
 
   useEffect(() => {
     if (!hovered) return
@@ -244,8 +253,16 @@ function Exhibit({
     }
   }, [hovered])
 
-  useFrame((_, dt) => {
-    lift.current += ((hovered && !selected ? 1 : 0) - lift.current) * (1 - Math.exp(-dt * 10))
+  useFrame(({ invalidate }, dt) => {
+    const target = hovered && !selected ? 1 : 0
+    if (lift.current !== target) {
+      if (Math.abs(target - lift.current) > 1e-4) {
+        lift.current += (target - lift.current) * (1 - Math.exp(-Math.min(dt, 0.05) * 10))
+      } else {
+        lift.current = target
+      }
+      invalidate()
+    }
     const a = arrive()
     const g = stand.current!
     g.position.y = -(1 - a) * (PEDESTAL.h + GLASS.h + 0.1)
@@ -282,8 +299,8 @@ function Exhibit({
           <meshBasicMaterial color={CYAN} transparent opacity={0.12} />
         </mesh>
         <group position={[0, TOP + GLASS.h / 2 + 0.03, 0]}>
-          <Phone id={project.id} reveal={arrive} glow={glow} />
-          <Prop id={project.id} />
+          <Phone id={project.id} reveal={arrive} glow={glow} active={active} />
+          <Prop id={project.id} active={active} />
         </group>
         <group position={[0, TOP + GLASS.h / 2, 0]}>
           <mesh>
@@ -368,6 +385,7 @@ export function SideProjects({ progress }: { progress: RefObject<ScrollProgress>
           x={GALLERY.xs[i]}
           walk={walk}
           selected={selected === i}
+          reading={selected !== null}
           onSelect={() => setSelected(i)}
           labelRef={(g) => {
             labels.current[i] = g

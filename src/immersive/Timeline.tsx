@@ -227,8 +227,16 @@ function Board({
     }
   }, [hovered])
 
-  useFrame((_, dt) => {
-    lift.current += ((hovered && !selected ? 1 : 0) - lift.current) * (1 - Math.exp(-dt * 10))
+  useFrame(({ invalidate }, dt) => {
+    const target = hovered && !selected ? 1 : 0
+    if (lift.current !== target) {
+      if (Math.abs(target - lift.current) > 1e-4) {
+        lift.current += (target - lift.current) * (1 - Math.exp(-Math.min(dt, 0.05) * 10))
+      } else {
+        lift.current = target
+      }
+      invalidate()
+    }
     inner.current!.position.y = lift.current * 0.08 - (1 - arrive()) * 0.25
     outer.current!.visible = shown() > 0.01
   })
@@ -369,7 +377,7 @@ export function Timeline({ progress }: { progress: RefObject<ScrollProgress> }) 
     if (h && Math.abs(w - h.to) < 0.02) {
       heading.current = null
       setSelected(h.to)
-    } else if (h && (h.ttl -= dt) < 0) heading.current = null
+    } else if (h && (h.ttl -= Math.min(dt, 0.05)) < 0) heading.current = null
     if (selected !== null && Math.abs(w - selected) > 0.6) setSelected(null)
   })
 

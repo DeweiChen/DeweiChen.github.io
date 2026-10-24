@@ -37,19 +37,20 @@ export function useMouseWorld() {
   }, [])
 
   useFrame((_, dt) => {
+    const d = Math.min(dt, 0.05)
     const s = state.current
     const tx = (ndc.current.x * viewport.width) / 2
     const ty = (ndc.current.y * viewport.height) / 2
-    const k = 1 - Math.exp(-dt * 10)
+    const k = 1 - Math.exp(-d * 10)
     const nx = s.world.x + (tx - s.world.x) * k
     const ny = s.world.y + (ty - s.world.y) * k
     // First contact: jump instead of sweeping in from off-screen.
     if (s.strength === 0 && inside.current) s.world.set(tx, ty)
     else {
-      s.velocity.set((nx - s.world.x) / Math.max(dt, 1e-3), (ny - s.world.y) / Math.max(dt, 1e-3))
+      s.velocity.set((nx - s.world.x) / Math.max(d, 1e-3), (ny - s.world.y) / Math.max(d, 1e-3))
       s.world.set(nx, ny)
     }
-    s.strength += ((inside.current ? 1 : 0) - s.strength) * (1 - Math.exp(-dt * 4))
+    s.strength += ((inside.current ? 1 : 0) - s.strength) * (1 - Math.exp(-d * 4))
     if (s.strength < 1e-3 && !inside.current) s.strength = 0
   })
 

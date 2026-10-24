@@ -58,6 +58,8 @@ export function Room({ progress, lowEnd }: { progress: RefObject<ScrollProgress>
     solid.uniforms.uTime.value = state.clock.elapsedTime
     wire.uniforms.uScan.value = scan
     wire.uniforms.uWire.value = smoothstep(0.4, 0.8, screens)
+    // Only animate uTime while the glowing scan band is sweeping across the room's geometry.
+    if (screens > 0.7 && screens < 1.5) state.invalidate()
   })
 
   return (

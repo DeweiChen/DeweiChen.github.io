@@ -65,6 +65,7 @@ export function drawLines(ctx: CanvasRenderingContext2D, lines: Piece[][], left:
  */
 export function useCanvasTexture(width: number, height: number, draw: (ctx: CanvasRenderingContext2D) => void, deps: unknown[]) {
   const gl = useThree((s) => s.gl)
+  const invalidate = useThree((s) => s.invalidate)
   const texture = useMemo(() => {
     const canvas = document.createElement('canvas')
     canvas.width = width
@@ -85,6 +86,7 @@ export function useCanvasTexture(width: number, height: number, draw: (ctx: Canv
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       draw(ctx)
       texture.needsUpdate = true
+      invalidate()
     }
     paint()
     void document.fonts.ready.then(paint)
@@ -93,7 +95,7 @@ export function useCanvasTexture(width: number, height: number, draw: (ctx: Canv
     }
     // `draw` is rebuilt every render; `deps` says when its output actually changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [texture, ...deps])
+  }, [texture, invalidate, ...deps])
 
   useEffect(() => () => texture.dispose(), [texture])
 
