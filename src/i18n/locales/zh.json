@@ -193,7 +193,8 @@
     "webglUnavailable": "此裝置不支援 WebGL",
     "link": "連結",
     "details": "查看詳情",
-    "closeDetails": "點擊或按 Esc 關閉"
+    "closeDetails": "點擊或按 Esc 關閉",
+    "exitDoor": "推開門回到經典版"
   },
   "format": {
     "present": "至今",

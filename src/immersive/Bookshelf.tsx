@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
-import { Color, MeshStandardMaterial, Plane, Vector3, type Group } from 'three'
+import { Color, MeshStandardMaterial, type Group, type Plane } from 'three'
 import { useResume } from '@/i18n/useResume'
-import { scanHeight, SHELF } from './roomLayout'
+import { SHELF } from './roomLayout'
 import { TextPlane } from './TextPlane'
 import { SANS, useCanvasTexture } from './textCanvas'
+import { useScanClip } from './useScanClip'
 import type { ScrollProgress } from './useScrollProgress'
 
 const FRONT = SHELF.x - SHELF.depth / 2
@@ -142,7 +143,7 @@ function Plaque({ label, position, visible }: { label: string; position: [number
  */
 export function Bookshelf({ progress }: { progress: RefObject<ScrollProgress> }) {
   const { skills } = useResume()
-  const clip = useMemo(() => new Plane(new Vector3(0, -1, 0), -10), [])
+  const clip = useScanClip(progress)
 
   const { books, plaques } = useMemo(() => {
     const books: BookSpec[] = []
@@ -178,9 +179,6 @@ export function Bookshelf({ progress }: { progress: RefObject<ScrollProgress> })
     return { books, plaques }
   }, [skills])
 
-  useFrame(() => {
-    clip.constant = scanHeight(progress.current.screens)
-  })
   const visible = () => clip.constant > SHELF.boards[SHELF.boards.length - 1]
 
   return (

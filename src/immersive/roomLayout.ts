@@ -32,6 +32,18 @@ const ZC = -1 // room depth centre
 const H = CEILING_Y - FLOOR_Y
 const WALL_Y = (CEILING_Y + FLOOR_Y) / 2
 
+/** Row of display cases for the side projects, in the open floor in front of the window. */
+export const SHOWCASE = { x: 0.95, z: -1.6, spacing: 0.8 }
+
+/** Door in the left wall, between z0 and z1 and hinged at z0. It leads back to the classic page. */
+export const DOOR = { x: -W / 2, z0: -1.98, z1: -1.12, top: FLOOR_Y + 2 }
+
+/** Floor lamp in the back right corner. */
+export const LAMP = { x: 2.72, z: -3.68, shadeY: 0.5, shade: 0.4 }
+
+/** Framed certificates on the right wall beside the lamp, facing -x; one per degree, top to bottom. */
+export const CERTS = { x: W / 2 - 0.035, z: -3.05, size: [0.8, 0.56] as [number, number], ys: [0.62, -0.04] }
+
 /** Picture frame above the sofa, facing +z. */
 export const FRAME = { center: [-1.4, 0.72, -3.96] as Box['pos'], size: [1.95, 1.3] as [number, number] }
 
@@ -67,7 +79,10 @@ const ROOM: Box[] = [
   box([0, FLOOR_Y, ZC], [W, 0.04, D], 0),
   box([0, CEILING_Y, ZC], [W, 0.04, D], 0),
   box([0, WALL_Y, ZC - D / 2], [W, H, 0.04], 0),
-  box([-W / 2, WALL_Y, ZC], [0.04, H, D], 0),
+  // Left wall, around the door opening
+  box([-W / 2, WALL_Y, (ZC - D / 2 + DOOR.z0) / 2], [0.04, H, DOOR.z0 - (ZC - D / 2)], 0),
+  box([-W / 2, WALL_Y, (DOOR.z1 + ZC + D / 2) / 2], [0.04, H, ZC + D / 2 - DOOR.z1], 0),
+  box([-W / 2, (DOOR.top + CEILING_Y) / 2, (DOOR.z0 + DOOR.z1) / 2], [0.04, CEILING_Y - DOOR.top, DOOR.z1 - DOOR.z0], 0),
   box([W / 2, WALL_Y, ZC], [0.04, H, D], 0),
 
   // Window on the back wall
@@ -94,10 +109,18 @@ const ROOM: Box[] = [
   // Bookshelf against the right wall: three two-bay compartments for the skill groups
   ...bookshelf(),
 
+  // Door casing
+  box([DOOR.x + 0.03, (FLOOR_Y + DOOR.top) / 2, DOOR.z0 - 0.03], [0.06, DOOR.top - FLOOR_Y, 0.06]),
+  box([DOOR.x + 0.03, (FLOOR_Y + DOOR.top) / 2, DOOR.z1 + 0.03], [0.06, DOOR.top - FLOOR_Y, 0.06]),
+  box([DOOR.x + 0.03, DOOR.top + 0.03, (DOOR.z0 + DOOR.z1) / 2], [0.06, 0.06, DOOR.z1 - DOOR.z0 + 0.12]),
+
   // Floor lamp
-  box([2.3, -1.56, -3.4], [0.36, 0.04, 0.36], 1, true),
-  box([2.3, -0.6, -3.4], [0.04, 1.9, 0.04]),
-  box([2.3, 0.5, -3.4], [0.46, 0.36, 0.46]),
+  box([LAMP.x, -1.56, LAMP.z], [0.32, 0.04, 0.32], 1, true),
+  box([LAMP.x, (FLOOR_Y + LAMP.shadeY) / 2, LAMP.z], [0.04, LAMP.shadeY - FLOOR_Y, 0.04]),
+  box([LAMP.x, LAMP.shadeY, LAMP.z], [LAMP.shade, 0.34, LAMP.shade]),
+
+  // Certificate frames beside the lamp
+  ...CERTS.ys.map((y) => box([CERTS.x - 0.005, y, CERTS.z], [0.03, CERTS.size[1] + 0.07, CERTS.size[0] + 0.07])),
 
   // Picture frame above the sofa; the About text is painted on it
   box(FRAME.center, [FRAME.size[0], FRAME.size[1], 0.04]),

@@ -1,4 +1,5 @@
 import type { TFunction } from 'i18next'
+import { CERTS, DOOR, SHOWCASE } from './roomLayout'
 import { BOARD_Z, COMPANIES } from './timelineLayout'
 
 type Vec3 = [number, number, number]
@@ -40,12 +41,12 @@ export const STATIONS: Station[] = [
       map: [c.x, 0.3],
     }),
   ),
-  // Coffee table.
-  { id: 'sideProjects', pos: [0.1, 0.3, 0.1], target: [-1.3, -1.25, -2.2], span: 1.2, fit: [2, 1.4], map: [-1.3, -2.2] },
-  // Floor lamp corner.
-  { id: 'education', pos: [-0.2, 0.3, -0.5], target: [2.3, -0.1, -3.8], span: 1.2, fit: [2, 2.2], map: [2.3, -3.4] },
-  // Left wall, where the door will go.
-  { id: 'contact', pos: [-0.6, 0.0, -0.6], target: [-3.2, -0.4, -1.0], span: 1, fit: [2, 2.2], map: [-3.0, -1.0] },
+  // Display cases rising out of the floor in front of the window.
+  { id: 'sideProjects', pos: [SHOWCASE.x, 0.05, 1.2], target: [SHOWCASE.x, -1.0, SHOWCASE.z], span: 1.2, fit: [2.5, 1.4], map: [SHOWCASE.x, SHOWCASE.z] },
+  // Certificates on the right wall, lit by the lamp.
+  { id: 'education', pos: [0.9, 0.3, -2.75], target: [CERTS.x, 0.29, CERTS.z], span: 1.2, fit: [0.95, 1.4], map: [2.9, CERTS.z] },
+  // Left wall: the contact panel and the door out.
+  { id: 'contact', pos: [0.3, -0.1, -0.8], target: [DOOR.x, -0.45, -0.95], span: 1, fit: [2.35, 2.2], map: [-3.0, -0.95] },
 ]
 
 /** Scroll offset (in viewport heights) at which each station is reached. */

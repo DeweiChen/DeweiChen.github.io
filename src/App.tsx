@@ -68,6 +68,7 @@ function Shell() {
             direction={phase === 'to2d' ? 'out' : 'in'}
             lowEnd={lowEnd}
             onMorphDone={onMorphDone}
+            onExit={() => switchTo('classic')}
           />
         </Suspense>
       )}

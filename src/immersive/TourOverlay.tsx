@@ -5,7 +5,7 @@ import { SocialLinks } from '@/components/SocialLinks'
 import { useTranslation } from 'react-i18next'
 import { useResume } from '@/i18n/useResume'
 import { cn } from '@/lib/utils'
-import { READER_EVENT } from './Timeline'
+import { READER_EVENT } from './panel'
 import { EXPERIENCE, SECTIONS, sectionOf, STATION_AT, STATIONS, TOUR_LENGTH, stationLabel, tourPosition } from './stations'
 import { headX, yearOfX } from './timelineLayout'
 
@@ -180,7 +180,7 @@ export function TourOverlay({ visible }: { visible: boolean }) {
       >
         <FloorPlan position={position} current={current} />
         <div className="flex flex-col gap-2 pb-1">
-          <ol className="hidden space-y-0.5 text-xs sm:block">
+          <ol className="space-y-0.5 text-[11px] sm:text-xs">
             {SECTIONS.map((s, k) => (
               <li key={s.id}>
                 <button

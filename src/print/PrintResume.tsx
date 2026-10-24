@@ -8,7 +8,7 @@ import vive from '@/assets/print/vive.png'
 import htc from '@/assets/print/htc.png'
 import './print.css'
 
-const LOGOS: Record<string, string> = { homee, xrspace, vive, htc }
+const LOGOS: Record<string, string> = { homee, xrspace, vive, htc, freelance: `${import.meta.env.BASE_URL}favicon.svg` }
 
 /** Splits "Lead: rest" (or full-width "：") so the lead can be bolded, as in the PDF. */
 function Lead({ text }: { text: string }) {

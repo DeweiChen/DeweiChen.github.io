@@ -5,7 +5,10 @@ import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { TourOverlay } from './TourOverlay'
 import { AboutFrame } from './AboutFrame'
 import { Bookshelf } from './Bookshelf'
+import { Contact } from './Contact'
+import { Education } from './Education'
 import { Room } from './Room'
+import { SideProjects } from './SideProjects'
 import { Timeline } from './Timeline'
 import { SplatPortrait, type PixelRect } from './SplatPortrait'
 import { STATIONS, tourPosition } from './stations'
@@ -17,6 +20,8 @@ export interface ImmersiveSceneProps {
   direction: 'in' | 'out'
   lowEnd: boolean
   onMorphDone?: (target: 0 | 1) => void
+  /** Leave through the door at the end of the tour, back to the classic page. */
+  onExit?: () => void
 }
 
 const toVec = ([x, y, z]: [number, number, number]) => new Vector3(x, y, z)
@@ -77,7 +82,7 @@ function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
   return null
 }
 
-function Stage({ cardRect, direction, lowEnd, onMorphDone }: ImmersiveSceneProps) {
+function Stage({ cardRect, direction, lowEnd, onMorphDone, onExit }: ImmersiveSceneProps) {
   const progress = useScrollProgress()
   const count = lowEnd ? 8000 : innerWidth < 640 ? 12000 : 24000
 
@@ -90,6 +95,9 @@ function Stage({ cardRect, direction, lowEnd, onMorphDone }: ImmersiveSceneProps
       <AboutFrame progress={progress} />
       <Bookshelf progress={progress} />
       <Timeline progress={progress} />
+      <SideProjects progress={progress} />
+      <Education progress={progress} />
+      <Contact progress={progress} onExit={onExit} />
       <SplatPortrait
         count={count}
         cardRect={cardRect}
