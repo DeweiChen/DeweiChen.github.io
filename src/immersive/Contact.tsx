@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { MathUtils, MeshBasicMaterial, MeshStandardMaterial, type Group, type Plane } from 'three'
 import { useResume } from '@/i18n/useResume'
 import { CYAN, MUTED, panelBackground, TEXT } from './panel'
-import { GlowPool, glowStops } from './GlowPool'
+import { GlowPool } from './GlowPool'
 import { DOOR, FLOOR_Y } from './roomLayout'
 import { STATIONS, stationPresence } from './stations'
 import { TextPlane } from './TextPlane'
@@ -286,7 +286,8 @@ function Door({ clip, presence, onExit }: { clip: Plane; presence: () => number;
       </mesh>
       {/* Daylight from the open door falling across the floor. */}
       <GlowPool
-        stops={glowStops([232, 241, 255], 0.35)}
+        color={[232, 241, 255]}
+        peak={0.35}
         strength={() => Math.min(1, swing.current * 3) * presence()}
         center={[0, 0.5]}
         stretch={2.2}
@@ -347,7 +348,8 @@ export function Contact({ progress, onExit }: { progress: RefObject<ScrollProgre
     <>
       {/* A soft periwinkle wash on the wall around the plate and buttons, cool like the daylight behind the door. */}
       <GlowPool
-        stops={glowStops([140, 150, 255], 0.2)}
+        color={[140, 150, 255]}
+        peak={0.2}
         strength={presence}
         stretch={1.4}
         size={[PANEL.w + 1.4, 1.9]}

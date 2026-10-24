@@ -1,6 +1,5 @@
 import type { RefObject } from 'react'
 import { useResume } from '@/i18n/useResume'
-import { Fixture, GlowPool, glowStops } from './GlowPool'
 import { FRAME } from './roomLayout'
 import { STATIONS, stationPresence } from './stations'
 import { TextPlane } from './TextPlane'
@@ -13,14 +12,10 @@ const W = FRAME.size[0] - MARGIN * 2
 const H = FRAME.size[1] - MARGIN * 2
 const PX = 2048
 const PY = Math.round((PX * H) / W)
-// Cool, slightly icy picture light.
-const ICE: [number, number, number] = [207, 228, 255]
-const LAMP_Y = FRAME.center[1] + FRAME.size[1] / 2 + 0.09
 
-/** The About lines, painted on the picture frame above the sofa. They scan in, and the picture light comes on, as the camera arrives. */
+/** The About lines, painted on the picture frame above the sofa. They scan in as the camera arrives. */
 export function AboutFrame({ progress }: { progress: RefObject<ScrollProgress> }) {
   const { about } = useResume()
-  const presence = () => stationPresence(progress.current.screens, INDEX)
 
   const map = useCanvasTexture(
     PX,
@@ -61,41 +56,15 @@ export function AboutFrame({ progress }: { progress: RefObject<ScrollProgress> }
   )
 
   return (
-    <>
-      {/* Picture light above the frame, washing down over the wall and the canvas. */}
-      <Fixture color="#eaf3ff" strength={() => presence() * 0.9} position={[FRAME.center[0], LAMP_Y, FRAME.center[2] + 0.06]}>
-        <boxGeometry args={[FRAME.size[0] * 0.55, 0.03, 0.08]} />
-      </Fixture>
-      <GlowPool
-        stops={glowStops(ICE, 0.2)}
-        strength={presence}
-        center={[0.5, 0.2]}
-        stretch={1.5}
-        radius={0.75}
-        size={[FRAME.size[0] + 1.4, FRAME.size[1] + 1.2]}
-        position={[FRAME.center[0], FRAME.center[1] + 0.1, FRAME.center[2] - 0.018]}
-      />
-      <TextPlane
-        map={map}
-        width={W}
-        height={H}
-        position={[FRAME.center[0], FRAME.center[1], FRAME.center[2] + 0.025]}
-        reveal={() => {
-          const p = Math.min(1, presence() * 1.4)
-          return p * p * (3 - 2 * p)
-        }}
-        glow={() => presence() * 0.12}
-      />
-      {/* The light falling across the canvas, brightest under the lamp. */}
-      <GlowPool
-        stops={glowStops(ICE, 0.12)}
-        strength={presence}
-        center={[0.5, -0.05]}
-        stretch={1.8}
-        radius={0.9}
-        size={FRAME.size}
-        position={[FRAME.center[0], FRAME.center[1], FRAME.center[2] + 0.03]}
-      />
-    </>
+    <TextPlane
+      map={map}
+      width={W}
+      height={H}
+      position={[FRAME.center[0], FRAME.center[1], FRAME.center[2] + 0.025]}
+      reveal={() => {
+        const p = Math.min(1, stationPresence(progress.current.screens, INDEX) * 1.4)
+        return p * p * (3 - 2 * p)
+      }}
+    />
   )
 }

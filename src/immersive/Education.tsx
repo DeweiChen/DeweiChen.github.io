@@ -2,7 +2,7 @@ import { useEffect, useMemo, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Color, MeshBasicMaterial } from 'three'
 import { useResume, type Resume } from '@/i18n/useResume'
-import { GlowPool, type GlowStops } from './GlowPool'
+import { GlowPool } from './GlowPool'
 import { CERTS, LAMP } from './roomLayout'
 import { STATIONS, stationPresence } from './stations'
 import { TextPlane } from './TextPlane'
@@ -93,15 +93,6 @@ function Certificate({ degree, y, presence }: { degree: Degree; y: number; prese
   )
 }
 
-// Red-dominant warm amber: strictly prevents any green/olive tint on the navy walls.
-const AMBER: GlowStops = [
-  [0, 'rgba(255, 175, 50, 0.28)'],
-  [0.25, 'rgba(255, 140, 35, 0.16)'],
-  [0.5, 'rgba(255, 105, 20, 0.07)'],
-  [0.75, 'rgba(255, 75, 10, 0.02)'],
-  [1, 'rgba(255, 50, 0, 0)'],
-]
-
 /** Education: two framed certificates beside the floor lamp, which switches on as you arrive. */
 export function Education({ progress }: { progress: RefObject<ScrollProgress> }) {
   const { education } = useResume()
@@ -114,9 +105,12 @@ export function Education({ progress }: { progress: RefObject<ScrollProgress> })
 
   return (
     <>
-      {/* Warm light spilling on the wall around the certificates; the lamp sits towards the back corner. */}
+      {/* Warm light spilling on the wall around the certificates; the lamp sits towards the back corner.
+          Red-dominant amber, deepening towards the rim, so it never turns olive on the navy wall. */}
       <GlowPool
-        stops={AMBER}
+        color={[255, 175, 50]}
+        edgeColor={[255, 50, 0]}
+        peak={0.28}
         strength={presence}
         center={[0.4, 0.48]}
         stretch={1.2}

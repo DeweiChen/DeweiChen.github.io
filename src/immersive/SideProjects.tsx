@@ -6,7 +6,7 @@ import { useResume, type Resume } from '@/i18n/useResume'
 import { paintAppScreen, SCREEN_IMAGES } from './appScreens'
 import { CYAN, MUTED, panelBackground, TEXT, type PanelLayout } from './panel'
 import { Reader } from './Reader'
-import { Beam, Fixture, GlowPool, glowStops } from './GlowPool'
+import { Beam, Fixture, GlowPool, type Rgb } from './GlowPool'
 import { CEILING_Y, FLOOR_Y, GALLERY } from './roomLayout'
 import { SIDE_PROJECTS, STATION_AT, tourPosition } from './stations'
 import { TextPlane } from './TextPlane'
@@ -31,7 +31,7 @@ const LPY = Math.round((LPX * LABEL.h) / LABEL.w)
 const GLASS_EDGES = new EdgesGeometry(new BoxGeometry(GLASS.w, GLASS.h, GLASS.w))
 const PEDESTAL_EDGES = new EdgesGeometry(new BoxGeometry(PEDESTAL.w, PEDESTAL.h, PEDESTAL.w))
 /** Track spotlight over each case, in the blue of the exhibits. */
-const SPOT = { y: CEILING_Y - 0.15, color: [46, 124, 246] as [number, number, number] }
+const SPOT = { y: CEILING_Y - 0.15, color: [46, 124, 246] as Rgb, beam: [90, 156, 255] as Rgb }
 
 const smoothstep = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)))
@@ -331,9 +331,10 @@ function Exhibit({
       <Fixture color="#9cc6ff" strength={() => lit() * 0.9} position={[GALLERY.caseX, SPOT.y, 0]}>
         <cylinderGeometry args={[0.06, 0.06, 0.02, 24]} />
       </Fixture>
-      <Beam color="#5a9cff" strength={() => lit() * 0.16} top={SPOT.y} bottom={TOP} spread={0.42} position={[GALLERY.caseX, 0, 0]} />
+      <Beam color={SPOT.beam} peak={0.16} strength={lit} top={SPOT.y} bottom={TOP} spread={0.42} position={[GALLERY.caseX, 0, 0]} />
       <GlowPool
-        stops={glowStops(SPOT.color, 0.3)}
+        color={SPOT.color}
+        peak={0.3}
         strength={lit}
         size={[1.5, 1.5]}
         position={[GALLERY.caseX, FLOOR_Y + 0.022, 0]}
@@ -341,7 +342,8 @@ function Exhibit({
       />
       {/* Spill on the wall behind the label. */}
       <GlowPool
-        stops={glowStops(SPOT.color, 0.18)}
+        color={SPOT.color}
+        peak={0.18}
         strength={lit}
         center={[0.5, 0.3]}
         stretch={1.2}
