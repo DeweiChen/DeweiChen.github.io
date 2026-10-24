@@ -15,7 +15,8 @@ const INDEX = STATIONS.findIndex((s) => s.id === 'contact')
 // Everything here hangs on the left wall and faces into the room (+x).
 const WALL = DOOR.x + 0.03
 const FACE_IN: [number, number, number] = [0, Math.PI / 2, 0]
-const PANEL = { z: -0.44, y: -0.2, w: 1.15, h: 0.4 }
+// Beside the door, towards the front of the room.
+const PANEL = { z: DOOR.z1 + 0.69, y: -0.2, w: 1.15, h: 0.4 }
 const BUTTON = { w: 0.36, h: 0.13, d: 0.05, y: -0.62, gap: 0.035 }
 // Portrait phones see the wall from far back (the door has to fit the width too), so the
 // plate grows taller with larger type and the buttons stack into full-width rows below it.

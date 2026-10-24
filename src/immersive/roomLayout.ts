@@ -1,5 +1,7 @@
 import { BoxGeometry, BufferAttribute, BufferGeometry } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { sideProjects } from '@/data/resume'
+import { LINE_X } from './timelineLayout'
 
 /** Axis-aligned box in world units. `tone` 0 = shell (walls/floor), 1 = furniture. */
 interface Box {
@@ -26,17 +28,47 @@ export function scanHeight(screens: number) {
   return FLOOR_Y - 0.05 + smoothstep(0.7, 1.5, screens) * (CEILING_Y - FLOOR_Y + 0.8)
 }
 
+// The living room has a fixed size; the hall in front of it is as wide as its content:
+// the Experience timeline in the middle and the side-project gallery off to the right.
 const W = 6.4
-const D = 6
-const ZC = -1 // room depth centre
+const BACK_Z = -4
 const H = CEILING_Y - FLOOR_Y
 const WALL_Y = (CEILING_Y + FLOOR_Y) / 2
 
-/** Row of display cases for the side projects, in the open floor in front of the window. */
-export const SHOWCASE = { x: 0.95, z: -1.6, spacing: 0.8 }
+/** Side-project gallery: one exhibit per project along the back wall of the hall's right wing. */
+const GALLERY_SPACING = 2
+const GALLERY_X0 = Math.max(W / 2, LINE_X + 0.2)
+export const GALLERY = {
+  /** Back wall of the wing, which the wall labels hang on. */
+  wallZ: -0.4,
+  caseZ: 0.3,
+  xs: sideProjects.map((_, i) => GALLERY_X0 + 1.1 + i * GALLERY_SPACING),
+}
+
+/** The hall: open to the living room behind it and to the camera in front. */
+export const HALL = {
+  x0: Math.min(-W / 2, -LINE_X - 0.2),
+  x1: Math.max(W / 2, GALLERY.xs[GALLERY.xs.length - 1] + 1.1),
+  z0: GALLERY.wallZ,
+  z1: 2,
+}
+
+export const LIVING = { x0: -W / 2, x1: W / 2, z0: BACK_Z, z1: HALL.z0 }
+
+/** Outline of the floor (x, z), for the HUD's floor plan. */
+export const OUTLINE: [number, number][] = [
+  [-W / 2, BACK_Z],
+  [W / 2, BACK_Z],
+  [W / 2, HALL.z0],
+  [HALL.x1, HALL.z0],
+  [HALL.x1, HALL.z1],
+  [HALL.x0, HALL.z1],
+  [HALL.x0, HALL.z0],
+  [-W / 2, HALL.z0],
+]
 
 /** Door in the left wall, between z0 and z1 and hinged at z0. It leads back to the classic page. */
-export const DOOR = { x: -W / 2, z0: -1.98, z1: -1.12, top: FLOOR_Y + 2 }
+export const DOOR = { x: -W / 2, z0: -2.5, z1: -1.64, top: FLOOR_Y + 2 }
 
 /** Floor lamp in the back right corner. */
 export const LAMP = { x: 2.72, z: -3.68, shadeY: 0.5, shade: 0.4 }
@@ -75,15 +107,23 @@ function box(pos: Box['pos'], size: Box['size'], tone: Box['tone'] = 1, detail =
 
 /** A living room built from boxes: open towards the camera so it reads like a cut-away scan. */
 const ROOM: Box[] = [
-  // Shell
-  box([0, FLOOR_Y, ZC], [W, 0.04, D], 0),
-  box([0, CEILING_Y, ZC], [W, 0.04, D], 0),
-  box([0, WALL_Y, ZC - D / 2], [W, H, 0.04], 0),
+  // Living room shell
+  box([0, FLOOR_Y, (BACK_Z + HALL.z0) / 2], [W, 0.04, HALL.z0 - BACK_Z], 0),
+  box([0, CEILING_Y, (BACK_Z + HALL.z0) / 2], [W, 0.04, HALL.z0 - BACK_Z], 0),
+  box([0, WALL_Y, BACK_Z], [W, H, 0.04], 0),
+  box([W / 2, WALL_Y, (BACK_Z + HALL.z0) / 2], [0.04, H, HALL.z0 - BACK_Z], 0),
   // Left wall, around the door opening
-  box([-W / 2, WALL_Y, (ZC - D / 2 + DOOR.z0) / 2], [0.04, H, DOOR.z0 - (ZC - D / 2)], 0),
-  box([-W / 2, WALL_Y, (DOOR.z1 + ZC + D / 2) / 2], [0.04, H, ZC + D / 2 - DOOR.z1], 0),
+  box([-W / 2, WALL_Y, (BACK_Z + DOOR.z0) / 2], [0.04, H, DOOR.z0 - BACK_Z], 0),
+  box([-W / 2, WALL_Y, (DOOR.z1 + HALL.z0) / 2], [0.04, H, HALL.z0 - DOOR.z1], 0),
   box([-W / 2, (DOOR.top + CEILING_Y) / 2, (DOOR.z0 + DOOR.z1) / 2], [0.04, CEILING_Y - DOOR.top, DOOR.z1 - DOOR.z0], 0),
-  box([W / 2, WALL_Y, ZC], [0.04, H, D], 0),
+
+  // Hall shell, with back wall wherever it reaches past the living room
+  box([(HALL.x0 + HALL.x1) / 2, FLOOR_Y, (HALL.z0 + HALL.z1) / 2], [HALL.x1 - HALL.x0, 0.04, HALL.z1 - HALL.z0], 0),
+  box([(HALL.x0 + HALL.x1) / 2, CEILING_Y, (HALL.z0 + HALL.z1) / 2], [HALL.x1 - HALL.x0, 0.04, HALL.z1 - HALL.z0], 0),
+  box([HALL.x0, WALL_Y, (HALL.z0 + HALL.z1) / 2], [0.04, H, HALL.z1 - HALL.z0], 0),
+  box([HALL.x1, WALL_Y, (HALL.z0 + HALL.z1) / 2], [0.04, H, HALL.z1 - HALL.z0], 0),
+  ...(HALL.x1 > W / 2 ? [box([(W / 2 + HALL.x1) / 2, WALL_Y, HALL.z0], [HALL.x1 - W / 2, H, 0.04], 0)] : []),
+  ...(HALL.x0 < -W / 2 ? [box([(HALL.x0 - W / 2) / 2, WALL_Y, HALL.z0], [-W / 2 - HALL.x0, H, 0.04], 0)] : []),
 
   // Window on the back wall
   box([1.5, 1.15, -3.95], [1.7, 0.06, 0.08]),

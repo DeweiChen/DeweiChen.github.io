@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next'
-import { CERTS, DOOR, SHOWCASE } from './roomLayout'
+import { CERTS, DOOR, GALLERY } from './roomLayout'
 import { BOARD_Z, COMPANIES } from './timelineLayout'
 
 type Vec3 = [number, number, number]
@@ -15,6 +15,8 @@ export interface Station {
   fit: [number, number]
   /** Position on the HUD floor plan: x and z in room units. */
   map: [number, number]
+  /** A point the camera passes through on the way to the next station, to keep it off the walls. */
+  via?: { pos: Vec3; target: Vec3 }
 }
 
 /**
@@ -41,12 +43,23 @@ export const STATIONS: Station[] = [
       map: [c.x, 0.3],
     }),
   ),
-  // Display cases rising out of the floor in front of the window.
-  { id: 'sideProjects', pos: [SHOWCASE.x, 0.05, 1.2], target: [SHOWCASE.x, -1.0, SHOWCASE.z], span: 1.2, fit: [2.5, 1.4], map: [SHOWCASE.x, SHOWCASE.z] },
+  // Side projects: a walk along the gallery wing, one stop in front of each exhibit.
+  ...GALLERY.xs.map(
+    (x, k): Station => ({
+      id: 'sideProjects',
+      pos: [x, -0.1, 3.0],
+      target: [x, -0.4, GALLERY.wallZ],
+      span: 1,
+      fit: [1.75, 2.15],
+      map: [x, GALLERY.caseZ],
+      // Back along the front of the hall before turning into the living room.
+      via: k === GALLERY.xs.length - 1 ? { pos: [2.2, 0.2, 1.6], target: [2.6, -0.2, -2.4] } : undefined,
+    }),
+  ),
   // Certificates on the right wall, lit by the lamp.
   { id: 'education', pos: [0.9, 0.3, -2.75], target: [CERTS.x, 0.29, CERTS.z], span: 1.2, fit: [0.95, 1.4], map: [2.9, CERTS.z] },
   // Left wall: the contact panel and the door out.
-  { id: 'contact', pos: [0.3, -0.1, -0.8], target: [DOOR.x, -0.45, -0.95], span: 1, fit: [2.35, 2.2], map: [-3.0, -0.95] },
+  { id: 'contact', pos: [0.3, -0.1, -1.3], target: [DOOR.x, -0.45, -1.47], span: 1, fit: [2.35, 2.2], map: [-3.0, -1.47] },
 ]
 
 /** Scroll offset (in viewport heights) at which each station is reached. */
@@ -99,3 +112,4 @@ export function sectionOf(stationIndex: number) {
 }
 
 export const EXPERIENCE = SECTIONS.find((s) => s.id === 'experience')!
+export const SIDE_PROJECTS = SECTIONS.find((s) => s.id === 'sideProjects')!

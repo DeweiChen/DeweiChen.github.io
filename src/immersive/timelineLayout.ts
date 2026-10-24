@@ -2,7 +2,6 @@ import { experience, type Period } from '@/data/resume'
 
 // Where the Experience timeline sits in the room. Boards stand in a row behind
 // a line on the floor; the camera walks along it, one stop per company.
-export const LINE_X = 3.0
 export const LINE_Z = 0.55
 export const BOARD_W = 1.0
 export const BOARD_H = 0.68
@@ -29,6 +28,9 @@ export const COMPANIES = experience
   .map((c, index) => ({ index, ...spanOf(c.roles.map((r) => r.period)) }))
   .reverse()
   .map((c, k, all) => ({ ...c, x: -((all.length - 1) * BOARD_SPACING) / 2 + k * BOARD_SPACING }))
+
+/** Half the line's length: it runs a little past the outer boards, and grows with the number of companies. */
+export const LINE_X = Math.max(3.0, ((COMPANIES.length - 1) * BOARD_SPACING) / 2 + 0.6)
 
 export const YEAR0 = Math.floor(COMPANIES[0].start)
 export const YEAR1 = Math.floor(Math.max(...COMPANIES.map((c) => c.end))) + 1

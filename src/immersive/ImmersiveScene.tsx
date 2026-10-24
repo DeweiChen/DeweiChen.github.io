@@ -8,6 +8,7 @@ import { Bookshelf } from './Bookshelf'
 import { Contact } from './Contact'
 import { Education } from './Education'
 import { Room } from './Room'
+import { HALL, LIVING } from './roomLayout'
 import { SideProjects } from './SideProjects'
 import { Timeline } from './Timeline'
 import { SplatPortrait, type PixelRect } from './SplatPortrait'
@@ -25,8 +26,21 @@ export interface ImmersiveSceneProps {
 }
 
 const toVec = ([x, y, z]: [number, number, number]) => new Vector3(x, y, z)
-const POS_PATH = new CatmullRomCurve3(STATIONS.map((s) => toVec(s.pos)))
-const TARGET_PATH = new CatmullRomCurve3(STATIONS.map((s) => toVec(s.target)))
+// The path runs through every station and any waypoints between them. POINT_AT maps a
+// station to its point on the path, so (fractional) station indices map onto path params.
+const POINTS = STATIONS.flatMap((s) => [s, ...(s.via ? [s.via] : [])])
+const POINT_AT = STATIONS.reduce<number[]>((acc, _, i) => {
+  acc.push(i === 0 ? 0 : acc[i - 1] + (STATIONS[i - 1].via ? 2 : 1))
+  return acc
+}, [])
+const POS_PATH = new CatmullRomCurve3(POINTS.map((s) => toVec(s.pos)))
+const TARGET_PATH = new CatmullRomCurve3(POINTS.map((s) => toVec(s.target)))
+
+function pathParam(at: number) {
+  const i = Math.min(STATIONS.length - 2, Math.floor(at))
+  const p = POINT_AT[i] + (POINT_AT[i + 1] - POINT_AT[i]) * (at - i)
+  return p / (POINTS.length - 1)
+}
 // Scratch vectors for the rig; there is only ever one camera.
 const tmp = { pos: new Vector3(), target: new Vector3(), back: new Vector3(), right: new Vector3() }
 
@@ -47,7 +61,7 @@ function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
 
   useFrame(({ camera, size }, dt) => {
     const { screens } = progress.current
-    const u = tourPosition(screens) / (STATIONS.length - 1)
+    const u = pathParam(tourPosition(screens))
     const { pos, target, back, right } = tmp
     POS_PATH.getPoint(u, pos)
     TARGET_PATH.getPoint(u, target)
@@ -68,7 +82,9 @@ function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
     const needed = 1.1 * Math.max((h0 + (h1 - h0) * f) / 2 / tanHalf, (w0 + (w1 - w0) * f) / 2 / (tanHalf * (size.width / size.height)))
     if (needed > dist) {
       pos.addScaledVector(back, needed - dist)
-      pos.x = Math.min(3, Math.max(-3, pos.x))
+      // Stay inside whichever room the camera stands in.
+      const room = pos.z < LIVING.z1 ? LIVING : HALL
+      pos.x = Math.min(room.x1 - 0.2, Math.max(room.x0 + 0.2, pos.x))
     }
 
     sway.current.lerp(pointer.current, 1 - Math.exp(-dt * 3))

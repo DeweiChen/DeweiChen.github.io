@@ -3,24 +3,30 @@ import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { useTranslation } from 'react-i18next'
 import { BoxGeometry, DoubleSide, EdgesGeometry, type Group } from 'three'
 import { useResume, type Resume } from '@/i18n/useResume'
-import { CYAN, MUTED, TEXT, type PanelLayout } from './panel'
+import { paintAppScreen } from './appScreens'
+import { CYAN, MUTED, panelBackground, TEXT, type PanelLayout } from './panel'
 import { Reader } from './Reader'
-import { FLOOR_Y, SHOWCASE } from './roomLayout'
-import { STATIONS, stationPresence, tourPosition } from './stations'
+import { FLOOR_Y, GALLERY } from './roomLayout'
+import { SIDE_PROJECTS, tourPosition } from './stations'
 import { TextPlane } from './TextPlane'
 import { drawLines, SANS, useCanvasTexture, wrapRuns } from './textCanvas'
 import type { ScrollProgress } from './useScrollProgress'
 
 type Project = Resume['sideProjects'][number]
 
-const INDEX = STATIONS.findIndex((s) => s.id === 'sideProjects')
-const PEDESTAL = { w: 0.5, h: 0.75 }
-const GLASS = 0.5
+const PEDESTAL = { w: 0.6, h: 0.7 }
+const GLASS = { w: 0.6, h: 0.62 }
 const TOP = FLOOR_Y + PEDESTAL.h
-const PLAQUE = { w: 0.48, h: 0.28, y: TOP - 0.2 }
-const PX = 768
-const PY = Math.round((PX * PLAQUE.h) / PLAQUE.w)
-const GLASS_EDGES = new EdgesGeometry(new BoxGeometry(GLASS, GLASS, GLASS))
+const PHONE = { w: 0.25, h: 0.44, d: 0.018 }
+const SCREEN = { w: PHONE.w * 0.92, h: PHONE.h * 0.95 }
+const SPX = 512
+const SPY = Math.round((SPX * SCREEN.h) / SCREEN.w)
+/** Museum-style wall text above each case. */
+const LABEL = { w: 1.6, h: 0.86, y: 0.32 }
+const LPX = 1536
+const LPY = Math.round((LPX * LABEL.h) / LABEL.w)
+const GLASS_EDGES = new EdgesGeometry(new BoxGeometry(GLASS.w, GLASS.h, GLASS.w))
+const PEDESTAL_EDGES = new EdgesGeometry(new BoxGeometry(PEDESTAL.w, PEDESTAL.h, PEDESTAL.w))
 
 const smoothstep = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)))
@@ -76,185 +82,158 @@ function drawGlyph(ctx: CanvasRenderingContext2D, id: string, x: number, y: numb
   }
 }
 
-/** Little street map for the ToiletFinder model to stand on. */
-function useMapTexture() {
-  return useCanvasTexture(
-    256,
-    180,
-    (ctx) => {
-      ctx.fillStyle = '#141a30'
-      ctx.fillRect(0, 0, 256, 180)
-      ctx.strokeStyle = 'rgba(160, 180, 230, 0.35)'
-      ctx.lineWidth = 6
-      for (const x of [40, 120, 200]) {
-        ctx.beginPath()
-        ctx.moveTo(x, 0)
-        ctx.lineTo(x + 20, 180)
-        ctx.stroke()
-      }
-      for (const y of [50, 130]) {
-        ctx.beginPath()
-        ctx.moveTo(0, y)
-        ctx.lineTo(256, y - 10)
-        ctx.stroke()
-      }
-      // The route to the nearest restroom.
-      ctx.strokeStyle = CYAN
-      ctx.lineWidth = 5
-      ctx.setLineDash([10, 8])
-      ctx.beginPath()
-      ctx.moveTo(30, 165)
-      ctx.lineTo(48, 130)
-      ctx.lineTo(125, 122)
-      ctx.lineTo(128, 90)
-      ctx.stroke()
-    },
-    [],
-  )
-}
-
-/** A low-poly stand-in for each project, turning slowly inside its case. */
-function Model({ id, spin }: { id: string; spin: () => number }) {
+/** A small prop beside the phone that says what the app is about. */
+function Prop({ id }: { id: string }) {
   const group = useRef<Group>(null)
   const led = useRef<Group>(null)
-  const map = useMapTexture()
-
   useFrame(({ clock }, dt) => {
-    const g = group.current!
-    g.rotation.y += dt * (0.35 + spin() * 2)
-    g.position.y = Math.sin(clock.elapsedTime * 1.4) * 0.012
+    if (group.current) group.current.rotation.y += dt * 0.6
     if (led.current) led.current.visible = Math.sin(clock.elapsedTime * 5) > -0.3
   })
 
-  return (
-    <group ref={group}>
-      {id === 'smartHome' && (
-        // An old phone on a mount, turned into a security camera.
-        <group rotation={[0.25, 0, 0]}>
+  if (id === 'smartHome') {
+    // The phone is the camera: a mount under it and a blinking recording light.
+    return (
+      <>
+        <mesh position={[0, -PHONE.h / 2 - 0.05, -0.02]}>
+          <boxGeometry args={[0.025, 0.08, 0.025]} />
+          <meshStandardMaterial color="#3a3c5c" />
+        </mesh>
+        <mesh position={[0, -PHONE.h / 2 - 0.09, -0.02]}>
+          <cylinderGeometry args={[0.07, 0.075, 0.016, 24]} />
+          <meshStandardMaterial color="#3a3c5c" />
+        </mesh>
+        <group ref={led} position={[PHONE.w / 2 - 0.03, PHONE.h / 2 - 0.03, -PHONE.d / 2 - 0.004]}>
           <mesh>
-            <boxGeometry args={[0.13, 0.23, 0.016]} />
-            <meshStandardMaterial color="#454870" roughness={0.4} metalness={0.3} />
-          </mesh>
-          <mesh position={[0, 0.07, 0.01]} rotation={[Math.PI / 2, 0, 0]}>
-            <cylinderGeometry args={[0.026, 0.026, 0.012, 24]} />
-            <meshStandardMaterial color="#0b0d18" emissive="#2eb8f2" emissiveIntensity={0.6} />
-          </mesh>
-          <group ref={led} position={[0.045, 0.098, 0.01]}>
-            <mesh>
-              <sphereGeometry args={[0.007, 12, 8]} />
-              <meshBasicMaterial color="#ff4d5e" toneMapped={false} />
-            </mesh>
-          </group>
-          <mesh position={[0, -0.15, -0.01]}>
-            <boxGeometry args={[0.02, 0.08, 0.02]} />
-            <meshStandardMaterial color="#3a3c5c" />
-          </mesh>
-          <mesh position={[0, -0.19, -0.01]}>
-            <cylinderGeometry args={[0.05, 0.055, 0.014, 24]} />
-            <meshStandardMaterial color="#3a3c5c" />
+            <sphereGeometry args={[0.008, 12, 8]} />
+            <meshBasicMaterial color="#ff4d5e" toneMapped={false} />
           </mesh>
         </group>
-      )}
-      {id === 'toiletFinder' && (
-        // A map pin standing on a street map.
-        <>
-          <mesh position={[0, -0.17, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[0.3, 0.21]} />
-            <meshBasicMaterial map={map} />
+      </>
+    )
+  }
+  if (id === 'toiletFinder') {
+    return (
+      <group ref={group} position={[0.19, 0.08, 0.04]} scale={0.7}>
+        <mesh position={[0, 0.06, 0]}>
+          <sphereGeometry args={[0.055, 24, 16]} />
+          <meshStandardMaterial color="#2e7cf6" emissive="#2e7cf6" emissiveIntensity={0.35} roughness={0.3} />
+        </mesh>
+        <mesh position={[0, -0.04, 0]} rotation={[Math.PI, 0, 0]}>
+          <coneGeometry args={[0.05, 0.12, 24]} />
+          <meshStandardMaterial color="#2e7cf6" emissive="#2e7cf6" emissiveIntensity={0.35} roughness={0.3} />
+        </mesh>
+      </group>
+    )
+  }
+  // Petals drifting round the phone.
+  return (
+    <group ref={group}>
+      {Array.from({ length: 9 }, (_, k) => {
+        const a = (k / 9) * Math.PI * 2
+        return (
+          <mesh key={k} position={[Math.cos(a) * 0.22, Math.sin(a * 3) * 0.12, Math.sin(a) * 0.2]} rotation={[a, a * 2, 0]}>
+            <circleGeometry args={[0.014, 5]} />
+            <meshBasicMaterial color="#ffc3d8" side={DoubleSide} />
           </mesh>
-          <mesh position={[0, 0.06, 0]}>
-            <sphereGeometry args={[0.055, 24, 16]} />
-            <meshStandardMaterial color="#2eb8f2" emissive="#2eb8f2" emissiveIntensity={0.35} roughness={0.3} />
-          </mesh>
-          <mesh position={[0, -0.04, 0]} rotation={[Math.PI, 0, 0]}>
-            <coneGeometry args={[0.05, 0.12, 24]} />
-            <meshStandardMaterial color="#2eb8f2" emissive="#2eb8f2" emissiveIntensity={0.35} roughness={0.3} />
-          </mesh>
-          <mesh position={[0, 0.06, 0.05]}>
-            <sphereGeometry args={[0.018, 12, 8]} />
-            <meshBasicMaterial color="#ffffff" />
-          </mesh>
-        </>
-      )}
-      {id === 'ovoy' && (
-        // A sparkle with petals drifting round it, for the anime live wallpaper.
-        <>
-          <mesh scale={[0.7, 1.4, 0.7]}>
-            <octahedronGeometry args={[0.09]} />
-            <meshStandardMaterial color="#944cfa" emissive="#944cfa" emissiveIntensity={0.5} flatShading />
-          </mesh>
-          <mesh scale={[1.4, 0.7, 0.7]}>
-            <octahedronGeometry args={[0.07]} />
-            <meshStandardMaterial color="#c7a6ff" emissive="#944cfa" emissiveIntensity={0.4} flatShading />
-          </mesh>
-          {Array.from({ length: 7 }, (_, k) => {
-            const a = (k / 7) * Math.PI * 2
-            return (
-              <mesh key={k} position={[Math.cos(a) * 0.17, Math.sin(a * 3) * 0.06, Math.sin(a) * 0.17]} rotation={[a, a * 2, 0]}>
-                <circleGeometry args={[0.014, 5]} />
-                <meshBasicMaterial color="#f7a8c8" side={DoubleSide} />
-              </mesh>
-            )
-          })}
-        </>
-      )}
+        )
+      })}
     </group>
   )
 }
 
-/** One project on show: a pedestal with a plaque, and a glass case with its model inside. */
-function DisplayCase({
-  project,
-  x,
-  rise,
-  selected,
-  onSelect,
-  plaqueRef,
-}: {
-  project: Project
-  x: number
-  /** 0 sunk in the floor, 1 standing. */
-  rise: () => number
-  selected: boolean
-  onSelect: () => void
-  plaqueRef: (g: Group | null) => void
-}) {
-  const { t } = useTranslation()
-  const [hovered, setHovered] = useState(false)
-  const focus = useRef(0)
+/** The app itself: a phone showing its screen, turning gently from side to side. */
+function Phone({ id, reveal, glow }: { id: string; reveal: () => number; glow: () => number }) {
   const group = useRef<Group>(null)
+  const map = useCanvasTexture(SPX, SPY, (ctx) => paintAppScreen(ctx, id, SPX, SPY), [id])
+  useFrame(({ clock }) => {
+    group.current!.rotation.y = Math.sin(clock.elapsedTime * 0.5) * 0.35
+  })
+  return (
+    <group ref={group} rotation={[-0.08, 0, 0]}>
+      <mesh>
+        <boxGeometry args={[PHONE.w, PHONE.h, PHONE.d]} />
+        <meshStandardMaterial color="#1b1c2e" roughness={0.35} metalness={0.4} />
+      </mesh>
+      <TextPlane map={map} width={SCREEN.w} height={SCREEN.h} position={[0, 0, PHONE.d / 2 + 0.001]} reveal={reveal} glow={glow} />
+    </group>
+  )
+}
 
-  const map = useCanvasTexture(
-    PX,
-    PY,
+/** Wall text: name, period and description, big enough to read from the stop. */
+function useWallLabel(project: Project, index: number) {
+  const { t } = useTranslation()
+  return useCanvasTexture(
+    LPX,
+    LPY,
     (ctx) => {
-      ctx.fillStyle = '#121528'
-      ctx.beginPath()
-      ctx.roundRect(0, 0, PX, PY, 28)
-      ctx.fill()
-      ctx.strokeStyle = 'rgba(127, 216, 245, 0.45)'
-      ctx.lineWidth = 4
-      ctx.stroke()
-      drawGlyph(ctx, project.id, 44, 48, 116)
+      panelBackground(ctx, LPX, LPY)
+      const pad = 84
       ctx.textBaseline = 'top'
-      ctx.fillStyle = TEXT
-      let size = 60
-      for (; size > 34; size -= 2) {
-        ctx.font = `700 ${size}px ${SANS}`
-        if (ctx.measureText(project.name).width <= PX - 240) break
-      }
-      ctx.fillText(project.name, 188, 56, PX - 220)
+      ctx.fillStyle = CYAN
+      ctx.font = `600 34px ${SANS}`
+      ctx.fillText(`${t('labels.sideProjects').toUpperCase()}  ${String(index + 1).padStart(2, '0')}`, pad, pad - 10)
       ctx.fillStyle = MUTED
-      ctx.font = `500 34px ${SANS}`
-      ctx.fillText(project.period, 188, 64 + size)
+      ctx.textAlign = 'right'
+      ctx.fillText(project.period, LPX - pad, pad - 10)
+      ctx.textAlign = 'left'
+
+      const glyph = 120
+      drawGlyph(ctx, project.id, pad, pad + 56, glyph)
+      let size = 88
+      for (; size > 48; size -= 4) {
+        ctx.font = `700 ${size}px ${SANS}`
+        if (ctx.measureText(project.name).width <= LPX - pad * 2 - glyph - 36) break
+      }
+      ctx.fillStyle = TEXT
+      ctx.textBaseline = 'middle'
+      ctx.fillText(project.name, pad + glyph + 36, pad + 56 + glyph / 2)
+      ctx.textBaseline = 'top'
+
+      const top = pad + 56 + glyph + 48
+      const bottom = LPY - pad - 40
+      for (let s = 50; s >= 34; s -= 2) {
+        const lines = wrapRuns(ctx, [{ text: project.description, font: `400 ${s}px ${SANS}`, color: '#c9cde0' }], LPX - pad * 2)
+        if (lines.length * s * 1.6 > bottom - top && s > 34) continue
+        drawLines(ctx, lines, pad, top, s * 1.6)
+        break
+      }
       ctx.fillStyle = CYAN
       ctx.font = `600 32px ${SANS}`
       ctx.textAlign = 'right'
-      ctx.fillText(`${t('labels.details')} →`, PX - 44, PY - 76)
+      ctx.fillText(`${t(project.link ? 'labels.link' : 'labels.details')} ${project.link ? '↗' : '→'}`, LPX - pad, LPY - pad - 8)
       ctx.textAlign = 'left'
     },
-    [project, t],
+    [project, index, t],
   )
+}
+
+/** One project on show: wall text, and a pedestal with the app in a glass case in front of it. */
+function Exhibit({
+  project,
+  index,
+  x,
+  walk,
+  selected,
+  onSelect,
+  labelRef,
+}: {
+  project: Project
+  index: number
+  x: number
+  walk: () => number
+  selected: boolean
+  onSelect: () => void
+  labelRef: (g: Group | null) => void
+}) {
+  const [hovered, setHovered] = useState(false)
+  const lift = useRef(0)
+  const stand = useRef<Group>(null)
+  const label = useWallLabel(project, index)
+  // Rises out of the floor as the walk approaches, like the Experience boards; lit while it is the current stop.
+  const arrive = () => smoothstep(index - 0.9, index - 0.25, walk())
+  const focus = () => Math.max(0, 1 - Math.abs(walk() - index))
+  const glow = () => lift.current * 0.3 - (1 - focus()) * 0.45
 
   useEffect(() => {
     if (!hovered) return
@@ -265,12 +244,11 @@ function DisplayCase({
   }, [hovered])
 
   useFrame((_, dt) => {
-    focus.current += ((hovered && !selected ? 1 : 0) - focus.current) * (1 - Math.exp(-dt * 10))
-    const r = rise()
-    const g = group.current!
-    // Rises out of the floor like an exhibit on a lift.
-    g.position.y = -(1 - r) * (PEDESTAL.h + GLASS + 0.05)
-    g.visible = r > 0.001
+    lift.current += ((hovered && !selected ? 1 : 0) - lift.current) * (1 - Math.exp(-dt * 10))
+    const a = arrive()
+    const g = stand.current!
+    g.position.y = -(1 - a) * (PEDESTAL.h + GLASS.h + 0.1)
+    g.visible = a > 0.001
   })
 
   const handlers = {
@@ -286,30 +264,35 @@ function DisplayCase({
   }
 
   return (
-    <group position={[x, 0, SHOWCASE.z]}>
-      <group ref={group} visible={false} {...handlers}>
+    <group position={[x, 0, 0]}>
+      <group ref={labelRef} position={[0, LABEL.y, GALLERY.wallZ + 0.025]}>
+        <TextPlane map={label} width={LABEL.w} height={LABEL.h} reveal={arrive} glow={glow} {...handlers} />
+      </group>
+      <group ref={stand} position={[0, 0, GALLERY.caseZ]} visible={false} {...handlers}>
         <mesh position={[0, FLOOR_Y + PEDESTAL.h / 2, 0]}>
           <boxGeometry args={[PEDESTAL.w, PEDESTAL.h, PEDESTAL.w]} />
-          <meshStandardMaterial color="#25263f" roughness={0.8} />
+          <meshStandardMaterial color="#3a3d63" roughness={0.8} />
+          <lineSegments geometry={PEDESTAL_EDGES} raycast={() => null}>
+            <lineBasicMaterial color={CYAN} transparent opacity={0.22} />
+          </lineSegments>
         </mesh>
-        {/* Faint light from the base of the case. */}
         <mesh position={[0, TOP + 0.004, 0]}>
-          <boxGeometry args={[GLASS - 0.02, 0.008, GLASS - 0.02]} />
+          <boxGeometry args={[GLASS.w - 0.02, 0.008, GLASS.w - 0.02]} />
           <meshBasicMaterial color={CYAN} transparent opacity={0.12} />
         </mesh>
-        <group position={[0, TOP + GLASS / 2, 0]}>
-          <Model id={project.id} spin={() => focus.current} />
+        <group position={[0, TOP + GLASS.h / 2 + 0.03, 0]}>
+          <Phone id={project.id} reveal={arrive} glow={glow} />
+          <Prop id={project.id} />
+        </group>
+        <group position={[0, TOP + GLASS.h / 2, 0]}>
           <mesh>
-            <boxGeometry args={[GLASS, GLASS, GLASS]} />
-            <meshStandardMaterial color="#a8dcff" transparent opacity={0.08} roughness={0.05} depthWrite={false} />
+            <boxGeometry args={[GLASS.w, GLASS.h, GLASS.w]} />
+            <meshStandardMaterial color="#a8dcff" transparent opacity={0.07} roughness={0.05} depthWrite={false} />
           </mesh>
           {/* Lines are hit-tested with a 1-unit slack, which would steal clicks meant for the neighbours. */}
           <lineSegments geometry={GLASS_EDGES} raycast={() => null}>
             <lineBasicMaterial color={CYAN} transparent opacity={0.5} />
           </lineSegments>
-        </group>
-        <group ref={plaqueRef} position={[0, PLAQUE.y, PEDESTAL.w / 2 + 0.003]}>
-          <TextPlane map={map} width={PLAQUE.w} height={PLAQUE.h} reveal={rise} glow={() => focus.current * 0.35} />
         </group>
       </group>
     </group>
@@ -355,35 +338,36 @@ function paintProject(ctx: CanvasRenderingContext2D, project: Project, { px, py,
   return null
 }
 
-/** Side projects as exhibits: glass cases on pedestals that rise out of the floor as you arrive. */
+/** Side projects: a gallery wing off the hall, walked one exhibit at a time. */
 export function SideProjects({ progress }: { progress: RefObject<ScrollProgress> }) {
   const { t } = useTranslation()
   const { sideProjects } = useResume()
   const [selected, setSelected] = useState<number | null>(null)
   const [last, setLast] = useState<number | null>(null)
   if (selected !== null && selected !== last) setLast(selected)
-  const plaques = useRef<(Group | null)[]>([])
+  const labels = useRef<(Group | null)[]>([])
   const link = useRef<{ u0: number; u1: number; v0: number; v1: number } | null>(null)
-  const presence = () => stationPresence(progress.current.screens, INDEX)
+  // Position along the walk: 0 at the first exhibit.
+  const walk = () => tourPosition(progress.current.screens) - SIDE_PROJECTS.first
 
   // Walking on puts the panel back.
   useFrame(() => {
-    if (selected !== null && Math.abs(tourPosition(progress.current.screens) - INDEX) > 0.6) setSelected(null)
+    if (selected !== null && Math.abs(walk() - selected) > 0.6) setSelected(null)
   })
 
   return (
     <>
       {sideProjects.map((p, i) => (
-        <DisplayCase
+        <Exhibit
           key={p.id}
           project={p}
-          x={SHOWCASE.x + (i - (sideProjects.length - 1) / 2) * SHOWCASE.spacing}
-          // One after another, left to right.
-          rise={() => smoothstep(0.15 + i * 0.1, 0.65 + i * 0.1, presence())}
+          index={i}
+          x={GALLERY.xs[i]}
+          walk={walk}
           selected={selected === i}
           onSelect={() => setSelected(i)}
-          plaqueRef={(g) => {
-            plaques.current[i] = g
+          labelRef={(g) => {
+            labels.current[i] = g
           }}
         />
       ))}
@@ -393,8 +377,8 @@ export function SideProjects({ progress }: { progress: RefObject<ScrollProgress>
           link.current = paintProject(ctx, project, layout, t('labels.link'))
         }}
         deps={[]}
-        source={() => (last === null ? null : plaques.current[last])}
-        sourceHeight={PLAQUE.h}
+        source={() => (last === null ? null : labels.current[last])}
+        sourceHeight={LABEL.h}
         fill={{ wide: 0.5, tall: 0.55 }}
         onClose={() => setSelected(null)}
         onPanelClick={(project, uv) => {

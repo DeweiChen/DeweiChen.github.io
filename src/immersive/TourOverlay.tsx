@@ -7,6 +7,7 @@ import { useResume } from '@/i18n/useResume'
 import { cn } from '@/lib/utils'
 import { READER_EVENT } from './panel'
 import { EXPERIENCE, SECTIONS, sectionOf, STATION_AT, STATIONS, TOUR_LENGTH, stationLabel, tourPosition } from './stations'
+import { OUTLINE } from './roomLayout'
 import { headX, yearOfX } from './timelineLayout'
 
 const coarsePointer = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
@@ -36,10 +37,18 @@ function useScreens() {
   return screens
 }
 
-// Floor plan bounds in room units (x, z), including the hero stop in front of the open wall.
-const PLAN = { x0: -3.6, x1: 3.6, z0: -4.4, z1: 3 }
-const planX = (x: number) => ((x - PLAN.x0) / (PLAN.x1 - PLAN.x0)) * 100
-const planY = (z: number) => ((z - PLAN.z0) / (PLAN.z1 - PLAN.z0)) * 100
+// Floor plan bounds in room units (x, z): the room's outline plus every stop, the hero
+// one in front of the open wall included. One room unit is 10 plan units.
+const PLAN = {
+  x0: Math.min(...OUTLINE.map((p) => p[0]), ...STATIONS.map((s) => s.map[0])) - 0.4,
+  x1: Math.max(...OUTLINE.map((p) => p[0]), ...STATIONS.map((s) => s.map[0])) + 0.4,
+  z0: Math.min(...OUTLINE.map((p) => p[1]), ...STATIONS.map((s) => s.map[1])) - 0.4,
+  z1: Math.max(...OUTLINE.map((p) => p[1]), ...STATIONS.map((s) => s.map[1])) + 0.4,
+}
+const PLAN_W = (PLAN.x1 - PLAN.x0) * 10
+const PLAN_H = (PLAN.z1 - PLAN.z0) * 10
+const planX = (x: number) => (x - PLAN.x0) * 10
+const planY = (z: number) => (z - PLAN.z0) * 10
 
 /** Top-down map of the room, like a headset's guardian view: stations as dots, you as the marker. */
 function FloorPlan({ position, current }: { position: number; current: number }) {
@@ -51,8 +60,12 @@ function FloorPlan({ position, current }: { position: number; current: number })
   const me = [ax + (bx - ax) * f, az + (bz - az) * f]
 
   return (
-    <svg viewBox="0 0 100 100" className="size-24 sm:size-28" aria-hidden>
-      <rect x={planX(-3.2)} y={planY(-4)} width={planX(3.2) - planX(-3.2)} height={planY(2) - planY(-4)} className="fill-white/[0.03] stroke-white/25" strokeWidth={0.8} />
+    <svg viewBox={`0 0 ${PLAN_W} ${PLAN_H}`} className="h-20 w-auto sm:h-24" style={{ aspectRatio: `${PLAN_W} / ${PLAN_H}` }} aria-hidden>
+      <polygon
+        points={OUTLINE.map(([x, z]) => `${planX(x)},${planY(z)}`).join(' ')}
+        className="fill-white/[0.03] stroke-white/25"
+        strokeWidth={0.8}
+      />
       <polyline
         points={STATIONS.map((s) => `${planX(s.map[0])},${planY(s.map[1])}`).join(' ')}
         className="fill-none stroke-white/15"
@@ -84,8 +97,11 @@ export function TourOverlay({ visible }: { visible: boolean }) {
   const position = tourPosition(screens)
   const current = Math.round(position)
   const section = sectionOf(current)
-  // The Experience walk keeps its title up the whole way, with the year ticking under it.
-  const walking = position > EXPERIENCE.first - 0.5 && position < EXPERIENCE.last + 0.5
+  // Walks (several stops in one section) keep their title up the whole way;
+  // the Experience walk has the year ticking under it.
+  const sec = SECTIONS[section]
+  const walking = !!sec && sec.last > sec.first && position > sec.first - 0.5 && position < sec.last + 0.5
+  const timeline = walking && sec.id === 'experience'
   const arrived = Math.abs(position - current) < 0.08 || walking
   const year = Math.floor(yearOfX(headX(position - EXPERIENCE.first)))
   const [reading, setReading] = useState(false)
@@ -159,7 +175,7 @@ export function TourOverlay({ visible }: { visible: boolean }) {
             <h2 className="mt-1 bg-gradient-to-r from-brand-from to-brand-to bg-clip-text text-3xl font-semibold tracking-wide text-transparent sm:text-5xl">
               {stationLabel(STATIONS[current].id, t)}
             </h2>
-            {walking && (
+            {timeline && (
               <p className="mt-2 font-mono text-5xl font-light tracking-tight text-foreground/90 tabular-nums sm:text-7xl" aria-live="off">
                 {year}
               </p>
