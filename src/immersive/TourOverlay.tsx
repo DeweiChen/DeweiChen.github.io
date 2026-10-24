@@ -104,13 +104,14 @@ export function TourOverlay({ visible }: { visible: boolean }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: visible ? 1 : 0 }}
         transition={{ duration: 0.6, delay: visible ? 0.9 : 0 }}
-        className={cn('relative z-10 overflow-x-clip', !visible && 'pointer-events-none')}
+        // Transparent to the pointer so the books and frames in the canvas below can be hovered.
+        className="pointer-events-none relative z-10 overflow-x-clip"
       >
         {/* First screen belongs to the particles; only a caption and the stats sit at the bottom. */}
         <section className="pointer-events-none flex h-svh flex-col items-center justify-end px-4 pb-8 text-center sm:pb-10">
           <p className="text-sm text-foreground/90 sm:text-lg">{r.headline}</p>
           <p className="mt-1 text-sm text-muted-foreground">{r.location}</p>
-          <SocialLinks className="pointer-events-auto mt-3 text-muted-foreground" iconClassName="size-4" />
+          <SocialLinks className={cn('mt-3 text-muted-foreground', visible && 'pointer-events-auto')} iconClassName="size-4" />
           <dl className="mt-5 grid grid-cols-4 gap-x-4 sm:mt-6 sm:flex sm:gap-x-8">
             {r.stats.map((s) => (
               <div key={s.label}>

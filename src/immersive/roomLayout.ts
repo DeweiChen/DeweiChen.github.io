@@ -13,11 +13,49 @@ interface Box {
 export const FLOOR_Y = -1.6
 export const CEILING_Y = 1.9
 
+const smoothstep = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)))
+  return t * t * (3 - 2 * t)
+}
+
+/**
+ * World height of the scan plane: solid below, wireframe above. It sweeps on the
+ * first leg of the tour, while the camera walks in from the hero stop.
+ */
+export function scanHeight(screens: number) {
+  return FLOOR_Y - 0.05 + smoothstep(0.7, 1.5, screens) * (CEILING_Y - FLOOR_Y + 0.8)
+}
+
 const W = 6.4
 const D = 6
 const ZC = -1 // room depth centre
 const H = CEILING_Y - FLOOR_Y
 const WALL_Y = (CEILING_Y + FLOOR_Y) / 2
+
+/** Picture frame above the sofa, facing +z. */
+export const FRAME = { center: [-1.4, 0.72, -3.96] as Box['pos'], size: [1.95, 1.3] as [number, number] }
+
+/** Bookshelf against the right wall, open towards -x. `boards` are shelf heights, bottom to top. */
+export const SHELF = { x: 2.95, depth: 0.45, z0: -2.6, z1: -0.6, boards: [-1.58, -1.0, -0.2, 0.6, 1.38], board: 0.04 }
+
+function bookshelf(): Box[] {
+  const { x, depth, z0, z1, boards, board } = SHELF
+  const w = z1 - z0
+  const zc = (z0 + z1) / 2
+  const bottom = boards[0] - board / 2
+  const top = boards[boards.length - 1] + board / 2
+  const h = top - bottom
+  const parts: Box[] = [
+    box([x, bottom + h / 2, z0], [depth, h, 0.04]),
+    box([x, bottom + h / 2, z1], [depth, h, 0.04]),
+    ...boards.map((y) => box([x, y, zc], [depth, board, w])),
+  ]
+  // Centre divider through the upper three compartments.
+  const dividerBottom = boards[1] + board / 2
+  const dividerTop = boards[4] - board / 2
+  parts.push(box([x, (dividerBottom + dividerTop) / 2, zc], [depth, dividerTop - dividerBottom, 0.03], 1, true))
+  return parts
+}
 
 function box(pos: Box['pos'], size: Box['size'], tone: Box['tone'] = 1, detail = false): Box {
   return { pos, size, tone, detail }
@@ -53,22 +91,16 @@ const ROOM: Box[] = [
   box([-0.72, -1.41, -1.95], [0.05, 0.34, 0.05], 1, true),
   box([-1.3, -1.575, -2.5], [2.8, 0.01, 1.9], 1, true),
 
-  // Bookshelf against the right wall
-  box([2.95, -0.1, -2.1], [0.45, 3.0, 0.04]),
-  box([2.95, -0.1, -0.9], [0.45, 3.0, 0.04]),
-  box([2.95, 1.38, -1.5], [0.45, 0.04, 1.2]),
-  box([2.95, 0.6, -1.5], [0.45, 0.04, 1.2], 1, true),
-  box([2.95, -0.2, -1.5], [0.45, 0.04, 1.2], 1, true),
-  box([2.95, -1.0, -1.5], [0.45, 0.04, 1.2], 1, true),
-  box([2.95, -1.58, -1.5], [0.45, 0.04, 1.2]),
+  // Bookshelf against the right wall: three two-bay compartments for the skill groups
+  ...bookshelf(),
 
   // Floor lamp
   box([2.3, -1.56, -3.4], [0.36, 0.04, 0.36], 1, true),
   box([2.3, -0.6, -3.4], [0.04, 1.9, 0.04]),
   box([2.3, 0.5, -3.4], [0.46, 0.36, 0.46]),
 
-  // Picture frame above the sofa
-  box([-1.4, 0.75, -3.96], [1.3, 0.85, 0.04], 1, true),
+  // Picture frame above the sofa; the About text is painted on it
+  box(FRAME.center, [FRAME.size[0], FRAME.size[1], 0.04]),
 ]
 
 function layout(lowEnd: boolean) {

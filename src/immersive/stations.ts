@@ -9,6 +9,8 @@ export interface Station {
   target: Vec3
   /** Scroll distance to the next station, in viewport heights. */
   span: number
+  /** Size (w, h) of what the station shows; the camera backs off until it fits the viewport. */
+  fit: [number, number]
   /** Position on the HUD floor plan: x and z in room units. */
   map: [number, number]
 }
@@ -19,19 +21,19 @@ export interface Station {
  */
 export const STATIONS: Station[] = [
   // Longer first leg: the name dissolves, the room is scanned, then we walk in.
-  { id: 'hero', pos: [0, 0, 6], target: [0, 0, -4], span: 2, map: [0, 2.6] },
+  { id: 'hero', pos: [0, 0, 6], target: [0, 0, -4], span: 2, fit: [0, 0], map: [0, 2.6] },
   // Picture frame above the sofa.
-  { id: 'about', pos: [-1.0, 0.45, -0.4], target: [-1.4, 0.7, -4], span: 1.2, map: [-1.4, -3.6] },
+  { id: 'about', pos: [-1.25, 0.62, -1.5], target: [-1.4, 0.72, -4], span: 1.2, fit: [2.1, 1.45], map: [-1.4, -3.6] },
   // Bookshelf on the right wall.
-  { id: 'skills', pos: [-1.2, 0.2, -0.6], target: [3, -0.1, -1.6], span: 1.2, map: [2.9, -1.5] },
+  { id: 'skills', pos: [-0.2, 0.25, -1.1], target: [2.7, 0.2, -1.6], span: 1.2, fit: [2.2, 2.5], map: [2.9, -1.6] },
   // Timeline running along the floor.
-  { id: 'experience', pos: [0, 0.9, 1.6], target: [0, -1.4, -2.4], span: 1.2, map: [0, -0.5] },
+  { id: 'experience', pos: [0, 0.9, 1.6], target: [0, -1.4, -2.4], span: 1.2, fit: [3, 2.5], map: [0, -0.5] },
   // Coffee table.
-  { id: 'sideProjects', pos: [0.1, 0.3, 0.1], target: [-1.3, -1.25, -2.2], span: 1.2, map: [-1.3, -2.2] },
+  { id: 'sideProjects', pos: [0.1, 0.3, 0.1], target: [-1.3, -1.25, -2.2], span: 1.2, fit: [2, 1.4], map: [-1.3, -2.2] },
   // Floor lamp corner.
-  { id: 'education', pos: [-0.2, 0.3, -0.5], target: [2.3, -0.1, -3.8], span: 1.2, map: [2.3, -3.4] },
+  { id: 'education', pos: [-0.2, 0.3, -0.5], target: [2.3, -0.1, -3.8], span: 1.2, fit: [2, 2.2], map: [2.3, -3.4] },
   // Left wall, where the door will go.
-  { id: 'contact', pos: [-0.6, 0.0, -0.6], target: [-3.2, -0.4, -1.0], span: 1, map: [-3.0, -1.0] },
+  { id: 'contact', pos: [-0.6, 0.0, -0.6], target: [-3.2, -0.4, -1.0], span: 1, fit: [2, 2.2], map: [-3.0, -1.0] },
 ]
 
 /** Scroll offset (in viewport heights) at which each station is reached. */
@@ -55,6 +57,11 @@ export function tourPosition(screens: number) {
   // Hold for the first and last 20% of each leg.
   const m = Math.min(1, Math.max(0, (f - 0.2) / 0.6))
   return i + m * m * (3 - 2 * m)
+}
+
+/** 1 while parked at station `index`, falling to 0 halfway to its neighbours. */
+export function stationPresence(screens: number, index: number) {
+  return Math.max(0, 1 - Math.abs(tourPosition(screens) - index) * 2)
 }
 
 /** Index of the station nearest to a scroll offset, for the HUD. */

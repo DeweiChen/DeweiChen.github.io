@@ -4,7 +4,7 @@ import { ShaderMaterial, Vector2 } from 'three'
 import vertexShader from './room.vert?raw'
 import fragmentShader from './room.frag?raw'
 import wireFragmentShader from './roomWire.frag?raw'
-import { buildRoomEdges, buildRoomGeometry, CEILING_Y, FLOOR_Y } from './roomLayout'
+import { buildRoomEdges, buildRoomGeometry, FLOOR_Y, scanHeight } from './roomLayout'
 import type { ScrollProgress } from './useScrollProgress'
 
 const smoothstep = (a: number, b: number, x: number) => {
@@ -52,9 +52,8 @@ export function Room({ progress, lowEnd }: { progress: RefObject<ScrollProgress>
   }, [solid, wire])
 
   useFrame((state) => {
-    // Both happen on the first leg of the tour, while the camera walks in from the hero stop.
     const { screens } = progress.current
-    const scan = FLOOR_Y - 0.05 + smoothstep(0.7, 1.5, screens) * (CEILING_Y - FLOOR_Y + 0.8)
+    const scan = scanHeight(screens)
     solid.uniforms.uScan.value = scan
     solid.uniforms.uTime.value = state.clock.elapsedTime
     wire.uniforms.uScan.value = scan
