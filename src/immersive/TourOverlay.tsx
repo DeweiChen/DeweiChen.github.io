@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, Map } from 'lucide-react'
 import { SocialLinks } from '@/components/SocialLinks'
 import { useTranslation } from 'react-i18next'
 import { useResume } from '@/i18n/useResume'
@@ -57,10 +57,10 @@ function FloorPlan({ position, current }: { position: number; current: number })
   const me = [ax + (bx - ax) * f, az + (bz - az) * f]
 
   return (
-    <svg viewBox={`0 0 ${PLAN_W} ${PLAN_H}`} className="mx-auto h-auto max-h-36 w-full sm:max-h-44" style={{ aspectRatio: `${PLAN_W} / ${PLAN_H}` }} aria-hidden>
+    <svg viewBox={`0 0 ${PLAN_W} ${PLAN_H}`} className="h-auto w-full select-none" style={{ aspectRatio: `${PLAN_W} / ${PLAN_H}` }} aria-hidden>
       <polygon
         points={OUTLINE.map(([x, z]) => `${planX(x)},${planY(z)}`).join(' ')}
-        className="fill-white/[0.03] stroke-white/25"
+        className="fill-white/[0.04] stroke-white/25"
         strokeWidth={0.8}
       />
       <polyline
@@ -102,6 +102,7 @@ export function TourOverlay({ visible }: { visible: boolean }) {
   const arrived = Math.abs(position - current) < 0.08 || walking
   const year = Math.floor(yearOfX(headX(position - EXPERIENCE.first)))
   const [reading, setReading] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => coarsePointer)
   const hudVisible = visible && screens > 0.5 && !reading
 
   useEffect(() => {
@@ -117,6 +118,7 @@ export function TourOverlay({ visible }: { visible: boolean }) {
       if (e.key === 'ArrowRight') goTo(current + 1)
       else if (e.key === 'ArrowLeft') goTo(current - 1)
       else if (/^[1-9]$/.test(e.key) && Number(e.key) <= SECTIONS.length) goTo(SECTIONS[Number(e.key) - 1].first)
+      else if (e.key === 'm' || e.key === 'M') setCollapsed((c) => !c)
       else return
       e.preventDefault()
     }
@@ -182,48 +184,116 @@ export function TourOverlay({ visible }: { visible: boolean }) {
       </AnimatePresence>
 
       <motion.nav
+        layout
         aria-label={t('labels.tour')}
         initial={false}
         animate={{ opacity: hudVisible ? 1 : 0, y: hudVisible ? 0 : 16 }}
-        transition={{ duration: 0.4 }}
-        // The plan spans the panel; the sections fill two columns under it, the arrows taking the last cell.
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
-          'fixed bottom-4 left-4 z-20 flex w-60 flex-col gap-2.5 rounded-2xl border border-white/10 bg-black/30 p-3 backdrop-blur-md sm:bottom-8 sm:left-8 sm:w-72',
+          'fixed bottom-4 left-4 z-20 rounded-2xl border border-white/10 bg-black/40 shadow-lg backdrop-blur-md transition-colors sm:bottom-8 sm:left-8',
+          collapsed ? 'p-1.5' : 'w-[276px] p-3 sm:w-[288px]',
           !hudVisible && 'pointer-events-none',
         )}
       >
-        <FloorPlan position={position} current={current} />
-        <ol className="grid grid-flow-col grid-rows-[repeat(4,auto)] gap-x-3 gap-y-1 text-[11px] sm:text-xs">
-          {SECTIONS.map((s, k) => (
-            <li key={s.id} className="min-w-0">
+        {collapsed ? (
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              disabled={current === 0}
+              onClick={() => goTo(current - 1)}
+              aria-label={current === 0 ? undefined : stationLabel(STATIONS[current - 1]?.id, t)}
+              className="grid size-7 place-items-center rounded-full border border-white/10 bg-white/5 text-muted-foreground transition hover:border-primary/60 hover:text-primary disabled:opacity-25"
+            >
+              <ChevronLeft className="size-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setCollapsed(false)}
+              aria-label={t('labels.expandMap')}
+              className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs text-foreground/90 transition hover:bg-white/10"
+            >
+              <span className="font-mono text-[11px] font-semibold text-primary">
+                {String(section).padStart(2, '0')}
+              </span>
+              <span className="max-w-[100px] truncate text-xs font-medium text-foreground/90 sm:max-w-[120px]">
+                {stationLabel(STATIONS[current].id, t)}
+              </span>
+              <Map className="ml-1 size-3.5 text-muted-foreground transition hover:text-foreground" />
+            </button>
+            <button
+              type="button"
+              disabled={current === STATIONS.length - 1}
+              onClick={() => goTo(current + 1)}
+              aria-label={current === STATIONS.length - 1 ? undefined : stationLabel(STATIONS[current + 1]?.id, t)}
+              className="grid size-7 place-items-center rounded-full border border-white/10 bg-white/5 text-muted-foreground transition hover:border-primary/60 hover:text-primary disabled:opacity-25"
+            >
+              <ChevronRight className="size-3.5" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between px-0.5 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <Map className="size-3.5 text-primary" />
+                <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  {t('labels.map')}
+                </span>
+              </div>
               <button
                 type="button"
-                onClick={() => goTo(s.first)}
-                className={cn('w-full truncate text-left transition-colors', k === section ? 'text-primary' : 'text-muted-foreground hover:text-foreground')}
+                onClick={() => setCollapsed(true)}
+                aria-label={t('labels.collapseMap')}
+                className="grid size-5 place-items-center rounded text-muted-foreground transition hover:bg-white/10 hover:text-foreground"
               >
-                <span className="mr-2 font-mono tabular-nums opacity-60">{k + 1}</span>
-                {stationLabel(s.id, t)}
+                <ChevronDown className="size-3.5" />
               </button>
-            </li>
-          ))}
-          <li className="flex items-center justify-end gap-1.5">
-            {[
-              { to: current - 1, Icon: ChevronLeft, disabled: current === 0 },
-              { to: current + 1, Icon: ChevronRight, disabled: current === STATIONS.length - 1 },
-            ].map(({ to, Icon, disabled }) => (
-              <button
-                key={to}
-                type="button"
-                disabled={disabled}
-                onClick={() => goTo(to)}
-                aria-label={disabled ? undefined : stationLabel(STATIONS[to].id, t)}
-                className="grid size-6 place-items-center rounded-full border border-white/15 bg-white/5 transition hover:border-primary/60 hover:text-primary disabled:opacity-30 sm:size-7"
-              >
-                <Icon className="size-3.5" />
-              </button>
-            ))}
-          </li>
-        </ol>
+            </div>
+
+            <div className="grid grid-cols-[104px_1fr] items-center gap-2.5">
+              <div className="rounded-lg border border-white/5 bg-white/[0.02] p-1">
+                <FloorPlan position={position} current={current} />
+              </div>
+              <div className="flex h-full flex-col justify-between py-0.5">
+                <ol className="flex flex-col gap-0.5 text-[11px]">
+                  {SECTIONS.map((s, k) => (
+                    <li key={s.id} className="min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => goTo(s.first)}
+                        className={cn(
+                          'flex w-full items-center truncate rounded px-1.5 py-0.5 text-left transition-colors',
+                          k === section
+                            ? 'bg-primary/10 font-medium text-primary'
+                            : 'text-muted-foreground hover:bg-white/5 hover:text-foreground',
+                        )}
+                      >
+                        <span className="mr-1.5 font-mono text-[10px] tabular-nums opacity-60">{k + 1}</span>
+                        <span className="truncate">{stationLabel(s.id, t)}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+                <div className="flex items-center justify-end gap-1.5 border-t border-white/5 pt-1.5">
+                  {[
+                    { to: current - 1, Icon: ChevronLeft, disabled: current === 0 },
+                    { to: current + 1, Icon: ChevronRight, disabled: current === STATIONS.length - 1 },
+                  ].map(({ to, Icon, disabled }) => (
+                    <button
+                      key={to}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => goTo(to)}
+                      aria-label={disabled ? undefined : stationLabel(STATIONS[to]?.id, t)}
+                      className="grid size-6 place-items-center rounded-full border border-white/15 bg-white/5 transition hover:border-primary/60 hover:text-primary disabled:opacity-30"
+                    >
+                      <Icon className="size-3.5" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </motion.nav>
     </>
   )

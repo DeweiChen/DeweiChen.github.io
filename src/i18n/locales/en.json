@@ -196,7 +196,10 @@
     "closeDetails": "Click or Esc to close",
     "exitDoor": "Push the door to go back",
     "backToClassic": "Back to the classic page",
-    "skipTour": "Resume in text"
+    "skipTour": "Resume in text",
+    "map": "Map",
+    "expandMap": "Expand map",
+    "collapseMap": "Collapse map"
   },
   "format": {
     "present": "Present",

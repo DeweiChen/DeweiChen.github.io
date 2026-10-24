@@ -196,7 +196,10 @@
     "closeDetails": "點擊或按 Esc 關閉",
     "exitDoor": "推開門回到經典版",
     "backToClassic": "回到經典版頁面",
-    "skipTour": "文字版履歷"
+    "skipTour": "文字版履歷",
+    "map": "地圖",
+    "expandMap": "展開地圖",
+    "collapseMap": "收合地圖"
   },
   "format": {
     "present": "至今",
