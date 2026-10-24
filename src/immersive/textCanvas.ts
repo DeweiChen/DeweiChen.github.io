@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useThree } from '@react-three/fiber'
 import { CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace } from 'three'
 
@@ -152,6 +152,18 @@ export function drawReturnArrow(
 
   ctx.stroke()
   ctx.restore()
+}
+
+/** Loads `src` as an image; null until it arrives, or when there is no `src`. */
+export function useImage(src: string | undefined) {
+  const [img, setImg] = useState<HTMLImageElement | null>(null)
+  useEffect(() => {
+    if (!src) return
+    const el = new Image()
+    el.onload = () => setImg(el)
+    el.src = src
+  }, [src])
+  return src ? img : null
 }
 
 /**

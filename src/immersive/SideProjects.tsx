@@ -3,14 +3,14 @@ import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { useTranslation } from 'react-i18next'
 import { BoxGeometry, DoubleSide, EdgesGeometry, MeshStandardMaterial, type Group, type Plane } from 'three'
 import { useResume, type Resume } from '@/i18n/useResume'
-import { paintAppScreen } from './appScreens'
+import { paintAppScreen, SCREEN_IMAGES } from './appScreens'
 import { CYAN, MUTED, panelBackground, TEXT, type PanelLayout } from './panel'
 import { Reader } from './Reader'
 import { Beam, Fixture, GlowPool, glowStops } from './GlowPool'
 import { CEILING_Y, FLOOR_Y, GALLERY } from './roomLayout'
 import { SIDE_PROJECTS, STATION_AT, tourPosition } from './stations'
 import { TextPlane } from './TextPlane'
-import { drawExternalArrow, drawLines, drawRightArrow, SANS, useCanvasTexture, wrapRuns } from './textCanvas'
+import { drawExternalArrow, drawLines, drawRightArrow, SANS, useCanvasTexture, useImage, wrapRuns } from './textCanvas'
 import { useOpenRequest } from './useOpenRequest'
 import { useScanClip } from './useScanClip'
 import type { ScrollProgress } from './useScrollProgress'
@@ -18,11 +18,11 @@ import type { ScrollProgress } from './useScrollProgress'
 type Project = Resume['sideProjects'][number]
 
 const PEDESTAL = { w: 0.6, h: 0.7 }
-const GLASS = { w: 0.6, h: 0.62 }
+const GLASS = { w: 0.6, h: 0.74 }
 const TOP = FLOOR_Y + PEDESTAL.h
-const PHONE = { w: 0.25, h: 0.44, d: 0.018 }
+const PHONE = { w: 0.34, h: 0.6, d: 0.02 }
 const SCREEN = { w: PHONE.w * 0.92, h: PHONE.h * 0.95 }
-const SPX = 512
+const SPX = 640
 const SPY = Math.round((SPX * SCREEN.h) / SCREEN.w)
 /** Museum-style wall text above each case. */
 const LABEL = { w: 1.28, h: 0.76, y: 0.32 }
@@ -38,8 +38,37 @@ const smoothstep = (a: number, b: number, x: number) => {
   return t * t * (3 - 2 * t)
 }
 
-/** A small app-icon glyph per project, drawn in a w x w box. */
-function drawGlyph(ctx: CanvasRenderingContext2D, id: string, x: number, y: number, w: number) {
+/** Real app icons under public/, keyed by project id; a drawn glyph stands in until one loads. */
+const APP_ICONS: Record<string, string> = {
+  smartHome: `${import.meta.env.BASE_URL}screens/home-assistant-icon.png`,
+  toiletFinder: `${import.meta.env.BASE_URL}screens/toilet-finder-icon.png`,
+  ovoy: `${import.meta.env.BASE_URL}screens/ovoy-icon.png`,
+}
+
+/** Every app icon, loaded once; missing ones are absent until they arrive. */
+function useAppIcons() {
+  const [icons, setIcons] = useState<Record<string, HTMLImageElement>>({})
+  useEffect(() => {
+    for (const [id, src] of Object.entries(APP_ICONS)) {
+      const el = new Image()
+      el.onload = () => setIcons((m) => ({ ...m, [id]: el }))
+      el.src = src
+    }
+  }, [])
+  return icons
+}
+
+/** A small app icon per project, drawn in a w x w box: the real one once loaded, else a glyph. */
+function drawGlyph(ctx: CanvasRenderingContext2D, id: string, x: number, y: number, w: number, icon?: HTMLImageElement) {
+  if (icon) {
+    ctx.save()
+    ctx.beginPath()
+    ctx.roundRect(x, y, w, w, w * 0.24)
+    ctx.clip()
+    ctx.drawImage(icon, x, y, w, w)
+    ctx.restore()
+    return
+  }
   const g = ctx.createLinearGradient(x, y, x + w, y + w)
   g.addColorStop(0, '#2eb8f2')
   g.addColorStop(1, '#944cfa')
@@ -120,20 +149,7 @@ function Prop({ id, active }: { id: string; active: () => boolean }) {
       </>
     )
   }
-  if (id === 'toiletFinder') {
-    return (
-      <group ref={group} position={[0.19, 0.08, 0.04]} scale={0.7}>
-        <mesh position={[0, 0.06, 0]}>
-          <sphereGeometry args={[0.055, 24, 16]} />
-          <meshStandardMaterial color="#2e7cf6" emissive="#2e7cf6" emissiveIntensity={0.35} roughness={0.3} />
-        </mesh>
-        <mesh position={[0, -0.04, 0]} rotation={[Math.PI, 0, 0]}>
-          <coneGeometry args={[0.05, 0.12, 24]} />
-          <meshStandardMaterial color="#2e7cf6" emissive="#2e7cf6" emissiveIntensity={0.35} roughness={0.3} />
-        </mesh>
-      </group>
-    )
-  }
+  if (id === 'toiletFinder') return null
   // Petals drifting round the phone.
   return (
     <group ref={group}>
@@ -153,7 +169,8 @@ function Prop({ id, active }: { id: string; active: () => boolean }) {
 /** The app itself: a phone showing its screen, turning gently from side to side. */
 function Phone({ id, reveal, glow, active }: { id: string; reveal: () => number; glow: () => number; active: () => boolean }) {
   const group = useRef<Group>(null)
-  const map = useCanvasTexture(SPX, SPY, (ctx) => paintAppScreen(ctx, id, SPX, SPY), [id])
+  const img = useImage(SCREEN_IMAGES[id])
+  const map = useCanvasTexture(SPX, SPY, (ctx) => paintAppScreen(ctx, id, SPX, SPY, img), [id, img])
   useFrame(({ clock, invalidate }) => {
     if (!active()) return
     group.current!.rotation.y = Math.sin(clock.elapsedTime * 0.5) * 0.35
@@ -173,6 +190,7 @@ function Phone({ id, reveal, glow, active }: { id: string; reveal: () => number;
 /** Wall text: name, period and description, big enough to read from the stop. */
 function useWallLabel(project: Project, index: number) {
   const { t } = useTranslation()
+  const icon = useImage(APP_ICONS[project.id]) ?? undefined
   return useCanvasTexture(
     LPX,
     LPY,
@@ -189,7 +207,7 @@ function useWallLabel(project: Project, index: number) {
       ctx.textAlign = 'left'
 
       const glyph = 120
-      drawGlyph(ctx, project.id, pad, pad + 56, glyph)
+      drawGlyph(ctx, project.id, pad, pad + 56, glyph, icon)
       let size = 88
       for (; size > 48; size -= 4) {
         ctx.font = `700 ${size}px ${SANS}`
@@ -226,7 +244,7 @@ function useWallLabel(project: Project, index: number) {
       }
       ctx.textAlign = 'left'
     },
-    [project, index, t],
+    [project, index, t, icon],
   )
 }
 
@@ -371,9 +389,10 @@ function paintProject(
   project: Project,
   { px, py, css, wide, pad, bottom, scrollY = 0 }: PanelLayout,
   linkLabel: string,
+  icon?: HTMLImageElement,
 ): { contentHeight: number; linkRect: { u0: number; u1: number; v0: number; v1: number } | null } {
   const glyph = 52 * css
-  drawGlyph(ctx, project.id, pad, pad, glyph)
+  drawGlyph(ctx, project.id, pad, pad, glyph, icon)
   ctx.textBaseline = 'top'
   ctx.fillStyle = TEXT
   ctx.font = `700 ${26 * css}px ${SANS}`
@@ -445,6 +464,7 @@ export function SideProjects({ progress }: { progress: RefObject<ScrollProgress>
   const { t } = useTranslation()
   const { sideProjects } = useResume()
   const clip = useScanClip(progress)
+  const icons = useAppIcons()
   const [selected, setSelected] = useState<number | null>(null)
   const [last, setLast] = useState<number | null>(null)
   if (selected !== null && selected !== last) setLast(selected)
@@ -497,11 +517,11 @@ export function SideProjects({ progress }: { progress: RefObject<ScrollProgress>
       <Reader
         item={selected === null ? null : sideProjects[selected]}
         paint={(ctx, project, layout) => {
-          const { contentHeight, linkRect } = paintProject(ctx, project, layout, t('labels.link'))
+          const { contentHeight, linkRect } = paintProject(ctx, project, layout, t('labels.link'), icons[project.id])
           link.current = linkRect
           return contentHeight
         }}
-        deps={[]}
+        deps={[icons]}
         source={() => (last === null ? null : labels.current[last])}
         sourceHeight={LABEL.h}
         fill={{ wide: 0.5, tall: 0.55 }}

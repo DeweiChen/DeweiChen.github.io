@@ -1,6 +1,7 @@
 import { SANS } from './textCanvas'
 
-// Painted stand-ins for each side project's app screen, until real screenshots replace them.
+// Each side project's app screen: a real screenshot where there is one, otherwise a painted
+// stand-in (also shown while the screenshot loads).
 
 const STATUS = '#c9cde0'
 
@@ -268,12 +269,24 @@ const SCREENS: Record<string, (ctx: CanvasRenderingContext2D, w: number, h: numb
   ovoy: wallpaper,
 }
 
-/** Paints project `id`'s app screen to fill a w x h canvas. */
-export function paintAppScreen(ctx: CanvasRenderingContext2D, id: string, w: number, h: number) {
+/** Real screenshots under public/, keyed by project id. */
+export const SCREEN_IMAGES: Record<string, string> = {
+  toiletFinder: `${import.meta.env.BASE_URL}screens/toilet-finder.jpg`,
+  ovoy: `${import.meta.env.BASE_URL}screens/ovoy.jpg`,
+}
+
+/** Paints project `id`'s app screen to fill a w x h canvas, from `img` when it has loaded. */
+export function paintAppScreen(ctx: CanvasRenderingContext2D, id: string, w: number, h: number, img?: HTMLImageElement | null) {
   ctx.save()
   ctx.beginPath()
   ctx.roundRect(0, 0, w, h, 36)
   ctx.clip()
-  ;(SCREENS[id] ?? wallpaper)(ctx, w, h)
+  if (img) {
+    // Cover the screen, cropping evenly top and bottom so the status bar and bottom sheet both keep some room.
+    const s = Math.max(w / img.width, h / img.height)
+    ctx.drawImage(img, (w - img.width * s) / 2, (h - img.height * s) / 2, img.width * s, img.height * s)
+  } else {
+    ;(SCREENS[id] ?? wallpaper)(ctx, w, h)
+  }
   ctx.restore()
 }

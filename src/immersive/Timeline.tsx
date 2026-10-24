@@ -14,7 +14,7 @@ import { CYAN, MUTED, panelBackground, TEXT, type PanelLayout } from './panel'
 import { Reader } from './Reader'
 import { TextPlane } from './TextPlane'
 import { BOARD_H, BOARD_W, BOARD_Y, BOARD_Z, COMPANIES, headX, LINE_X, LINE_Z, xOfYear, YEAR0, YEAR1 } from './timelineLayout'
-import { drawLines, SANS, useCanvasTexture, wrapRuns, type Run } from './textCanvas'
+import { drawLines, SANS, useCanvasTexture, useImage, wrapRuns, type Run } from './textCanvas'
 import { useOpenRequest } from './useOpenRequest'
 import { useScanClip } from './useScanClip'
 import type { ScrollProgress } from './useScrollProgress'
@@ -37,17 +37,6 @@ const DECAL = { x0: -LINE_X - 0.1, x1: LINE_X + 0.1, z0: -0.2, z1: 0.9, px: 4096
 const DECAL_PY = Math.round((DECAL.px * (DECAL.z1 - DECAL.z0)) / (DECAL.x1 - DECAL.x0))
 const decalX = (x: number) => ((x - DECAL.x0) / (DECAL.x1 - DECAL.x0)) * DECAL.px
 const decalY = (z: number) => ((z - DECAL.z0) / (DECAL.z1 - DECAL.z0)) * DECAL_PY
-
-function useImage(src: string | undefined) {
-  const [img, setImg] = useState<HTMLImageElement | null>(null)
-  useEffect(() => {
-    if (!src) return
-    const el = new Image()
-    el.onload = () => setImg(el)
-    el.src = src
-  }, [src])
-  return src ? img : null
-}
 
 /** Every company logo, loaded once; missing ones are null until they arrive. */
 function useLogos() {
