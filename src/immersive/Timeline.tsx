@@ -7,6 +7,7 @@ import htcLogo from '@/assets/print/htc.png'
 import viveLogo from '@/assets/print/vive.png'
 import xrspaceLogo from '@/assets/print/xrspace.png'
 import { useResume, type Resume } from '@/i18n/useResume'
+import { GlowPool, glowStops } from './GlowPool'
 import { FLOOR_Y } from './roomLayout'
 import { EXPERIENCE, STATION_AT, tourPosition } from './stations'
 import { CYAN, MUTED, panelBackground, TEXT, type PanelLayout } from './panel'
@@ -92,6 +93,26 @@ function useBoardSpecs(): BoardSpec[] {
 const smoothstep = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)))
   return t * t * (3 - 2 * t)
+}
+
+/** A violet pool of light on the floor in front of the board you are standing at; it walks along with you. */
+function FloorLight({ walk }: { walk: () => number }) {
+  const group = useRef<Group>(null)
+  useFrame(() => {
+    group.current!.position.x = headX(walk())
+  })
+  return (
+    <group ref={group}>
+      <GlowPool
+        stops={glowStops([148, 76, 250], 0.35)}
+        strength={() => smoothstep(-0.6, -0.1, walk()) * (1 - smoothstep(COMPANIES.length - 0.9, COMPANIES.length - 0.4, walk()))}
+        stretch={1.4}
+        size={[2.4, 1.8]}
+        position={[0, FLOOR_Y + 0.022, LINE_Z - 0.1]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      />
+    </group>
+  )
 }
 
 function TimelineFloor({ boards, walk }: { boards: BoardSpec[]; walk: () => number }) {
@@ -406,6 +427,7 @@ export function Timeline({ progress }: { progress: RefObject<ScrollProgress> }) 
 
   return (
     <>
+      <FloorLight walk={walk} />
       <TimelineFloor boards={boards} walk={walk} />
       {boards.map((b, i) => (
         <Board

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { MathUtils, MeshBasicMaterial, MeshStandardMaterial, type Group, type Plane } from 'three'
 import { useResume } from '@/i18n/useResume'
 import { CYAN, MUTED, panelBackground, TEXT } from './panel'
+import { GlowPool, glowStops } from './GlowPool'
 import { DOOR, FLOOR_Y } from './roomLayout'
 import { STATIONS, stationPresence } from './stations'
 import { TextPlane } from './TextPlane'
@@ -283,6 +284,17 @@ function Door({ clip, presence, onExit }: { clip: Plane; presence: () => number;
       <mesh material={light} position={[DOOR.x - 0.3, FLOOR_Y + DOOR_H / 2, (DOOR.z0 + DOOR.z1) / 2]} rotation={FACE_IN}>
         <planeGeometry args={[DOOR_W * 1.6, DOOR_H * 1.2]} />
       </mesh>
+      {/* Daylight from the open door falling across the floor. */}
+      <GlowPool
+        stops={glowStops([232, 241, 255], 0.35)}
+        strength={() => Math.min(1, swing.current * 3) * presence()}
+        center={[0, 0.5]}
+        stretch={2.2}
+        radius={0.45}
+        size={[2.2, 1.4]}
+        position={[DOOR.x + 1.1, FLOOR_Y + 0.022, (DOOR.z0 + DOOR.z1) / 2]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      />
       <group ref={hinge} position={[DOOR.x, FLOOR_Y, DOOR.z0]}>
         <group position={[0, DOOR_H / 2, DOOR_W / 2]}>
           <mesh
@@ -333,6 +345,15 @@ export function Contact({ progress, onExit }: { progress: RefObject<ScrollProgre
 
   return (
     <>
+      {/* A soft periwinkle wash on the wall around the plate and buttons, cool like the daylight behind the door. */}
+      <GlowPool
+        stops={glowStops([140, 150, 255], 0.2)}
+        strength={presence}
+        stretch={1.4}
+        size={[PANEL.w + 1.4, 1.9]}
+        position={[DOOR.x + 0.022, -0.3, PANEL.z]}
+        rotation={FACE_IN}
+      />
       <Plate presence={presence} />
       {buttons.map((b, i) => (
         <WallButton

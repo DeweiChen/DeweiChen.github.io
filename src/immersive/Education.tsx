@@ -1,7 +1,8 @@
 import { useEffect, useMemo, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { AdditiveBlending, Color, MeshBasicMaterial } from 'three'
+import { Color, MeshBasicMaterial } from 'three'
 import { useResume, type Resume } from '@/i18n/useResume'
+import { GlowPool, type GlowStops } from './GlowPool'
 import { CERTS, LAMP } from './roomLayout'
 import { STATIONS, stationPresence } from './stations'
 import { TextPlane } from './TextPlane'
@@ -92,54 +93,14 @@ function Certificate({ degree, y, presence }: { degree: Degree; y: number; prese
   )
 }
 
-/** Warm light spilling on the wall around the certificates without any green tint. */
-function LightPool({ presence }: { presence: () => number }) {
-  const S = 512
-  const map = useCanvasTexture(
-    S,
-    S,
-    (ctx) => {
-      // Lamp sits towards the back-right corner (left side on texture space)
-      const cx = S * 0.4
-      const cy = S * 0.48
-
-      // Soft elliptical falloff along the wall towards the certificates
-      ctx.save()
-      ctx.translate(cx, cy)
-      ctx.scale(1.2, 1.0)
-
-      // Red-dominant warm amber gradient: strictly prevents any green/olive tint on navy walls
-      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, S * 0.46)
-      g.addColorStop(0, 'rgba(255, 175, 50, 0.28)')
-      g.addColorStop(0.25, 'rgba(255, 140, 35, 0.16)')
-      g.addColorStop(0.5, 'rgba(255, 105, 20, 0.07)')
-      g.addColorStop(0.75, 'rgba(255, 75, 10, 0.02)')
-      g.addColorStop(1, 'rgba(255, 50, 0, 0)')
-
-      ctx.fillStyle = g
-      ctx.beginPath()
-      ctx.arc(0, 0, S * 0.46, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.restore()
-    },
-    [],
-  )
-
-  const material = useMemo(
-    () => new MeshBasicMaterial({ map, transparent: true, blending: AdditiveBlending, depthWrite: false, opacity: 0, toneMapped: false }),
-    [map],
-  )
-  useEffect(() => () => material.dispose(), [material])
-  useFrame(() => {
-    material.opacity = presence()
-  })
-
-  return (
-    <mesh material={material} position={[CERTS.x - 0.01, 0.35, (CERTS.z + LAMP.z) / 2]} rotation={[0, -Math.PI / 2, 0]}>
-      <planeGeometry args={[2.6, 2.4]} />
-    </mesh>
-  )
-}
+// Red-dominant warm amber: strictly prevents any green/olive tint on the navy walls.
+const AMBER: GlowStops = [
+  [0, 'rgba(255, 175, 50, 0.28)'],
+  [0.25, 'rgba(255, 140, 35, 0.16)'],
+  [0.5, 'rgba(255, 105, 20, 0.07)'],
+  [0.75, 'rgba(255, 75, 10, 0.02)'],
+  [1, 'rgba(255, 50, 0, 0)'],
+]
 
 /** Education: two framed certificates beside the floor lamp, which switches on as you arrive. */
 export function Education({ progress }: { progress: RefObject<ScrollProgress> }) {
@@ -153,7 +114,16 @@ export function Education({ progress }: { progress: RefObject<ScrollProgress> })
 
   return (
     <>
-      <LightPool presence={presence} />
+      {/* Warm light spilling on the wall around the certificates; the lamp sits towards the back corner. */}
+      <GlowPool
+        stops={AMBER}
+        strength={presence}
+        center={[0.4, 0.48]}
+        stretch={1.2}
+        size={[2.6, 2.4]}
+        position={[CERTS.x - 0.01, 0.35, (CERTS.z + LAMP.z) / 2]}
+        rotation={[0, -Math.PI / 2, 0]}
+      />
       {/* The shade glows from inside with gentle bloom. */}
       <mesh material={bulb} position={[LAMP.x, LAMP.shadeY, LAMP.z]}>
         <boxGeometry args={[LAMP.shade + 0.006, 0.344, LAMP.shade + 0.006]} />
