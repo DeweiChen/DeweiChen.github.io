@@ -10,6 +10,7 @@ import { FLOOR_Y, GALLERY } from './roomLayout'
 import { SIDE_PROJECTS, tourPosition } from './stations'
 import { TextPlane } from './TextPlane'
 import { drawLines, SANS, useCanvasTexture, wrapRuns } from './textCanvas'
+import { useOpenRequest } from './useOpenRequest'
 import type { ScrollProgress } from './useScrollProgress'
 
 type Project = Resume['sideProjects'][number]
@@ -349,6 +350,8 @@ export function SideProjects({ progress }: { progress: RefObject<ScrollProgress>
   const link = useRef<{ u0: number; u1: number; v0: number; v1: number } | null>(null)
   // Position along the walk: 0 at the first exhibit.
   const walk = () => tourPosition(progress.current.screens) - SIDE_PROJECTS.first
+
+  useOpenRequest('sideProjects', walk, setSelected)
 
   // Walking on puts the panel back.
   useFrame(() => {

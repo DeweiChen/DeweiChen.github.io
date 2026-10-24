@@ -6,16 +6,13 @@ import { useTranslation } from 'react-i18next'
 import { useResume } from '@/i18n/useResume'
 import { cn } from '@/lib/utils'
 import { READER_EVENT } from './panel'
-import { EXPERIENCE, SECTIONS, sectionOf, STATION_AT, STATIONS, TOUR_LENGTH, stationLabel, tourPosition } from './stations'
+import { EXPERIENCE, goToStation, SECTIONS, sectionOf, STATIONS, TOUR_LENGTH, stationLabel, tourPosition } from './stations'
 import { OUTLINE } from './roomLayout'
 import { headX, yearOfX } from './timelineLayout'
 
 const coarsePointer = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
 
-function goTo(i: number) {
-  const index = Math.min(STATIONS.length - 1, Math.max(0, i))
-  window.scrollTo({ top: STATION_AT[index] * innerHeight, behavior: 'smooth' })
-}
+const goTo = goToStation
 
 /** Scroll offset in viewport heights, updated once per animation frame. */
 function useScreens() {
@@ -60,7 +57,7 @@ function FloorPlan({ position, current }: { position: number; current: number })
   const me = [ax + (bx - ax) * f, az + (bz - az) * f]
 
   return (
-    <svg viewBox={`0 0 ${PLAN_W} ${PLAN_H}`} className="h-20 w-auto sm:h-24" style={{ aspectRatio: `${PLAN_W} / ${PLAN_H}` }} aria-hidden>
+    <svg viewBox={`0 0 ${PLAN_W} ${PLAN_H}`} className="h-auto w-full" style={{ aspectRatio: `${PLAN_W} / ${PLAN_H}` }} aria-hidden>
       <polygon
         points={OUTLINE.map(([x, z]) => `${planX(x)},${planY(z)}`).join(' ')}
         className="fill-white/[0.03] stroke-white/25"
@@ -189,28 +186,27 @@ export function TourOverlay({ visible }: { visible: boolean }) {
         initial={false}
         animate={{ opacity: hudVisible ? 1 : 0, y: hudVisible ? 0 : 16 }}
         transition={{ duration: 0.4 }}
+        // The plan spans the panel; the sections fill two columns under it, the arrows taking the last cell.
         className={cn(
-          'fixed bottom-4 left-4 z-20 flex items-end gap-3 rounded-2xl border border-white/10 bg-black/30 p-3 backdrop-blur-md sm:bottom-8 sm:left-8',
+          'fixed bottom-4 left-4 z-20 flex w-60 flex-col gap-2.5 rounded-2xl border border-white/10 bg-black/30 p-3 backdrop-blur-md sm:bottom-8 sm:left-8 sm:w-72',
           !hudVisible && 'pointer-events-none',
         )}
       >
         <FloorPlan position={position} current={current} />
-        <div className="flex flex-col gap-2 pb-1">
-          <ol className="space-y-0.5 text-[11px] sm:text-xs">
-            {SECTIONS.map((s, k) => (
-              <li key={s.id}>
-                <button
-                  type="button"
-                  onClick={() => goTo(s.first)}
-                  className={cn('transition-colors', k === section ? 'text-primary' : 'text-muted-foreground hover:text-foreground')}
-                >
-                  <span className="mr-2 font-mono tabular-nums opacity-60">{k + 1}</span>
-                  {stationLabel(s.id, t)}
-                </button>
-              </li>
-            ))}
-          </ol>
-          <div className="flex gap-1.5">
+        <ol className="grid grid-flow-col grid-rows-[repeat(4,auto)] gap-x-3 gap-y-1 text-[11px] sm:text-xs">
+          {SECTIONS.map((s, k) => (
+            <li key={s.id} className="min-w-0">
+              <button
+                type="button"
+                onClick={() => goTo(s.first)}
+                className={cn('w-full truncate text-left transition-colors', k === section ? 'text-primary' : 'text-muted-foreground hover:text-foreground')}
+              >
+                <span className="mr-2 font-mono tabular-nums opacity-60">{k + 1}</span>
+                {stationLabel(s.id, t)}
+              </button>
+            </li>
+          ))}
+          <li className="flex items-center justify-end gap-1.5">
             {[
               { to: current - 1, Icon: ChevronLeft, disabled: current === 0 },
               { to: current + 1, Icon: ChevronRight, disabled: current === STATIONS.length - 1 },
@@ -221,13 +217,13 @@ export function TourOverlay({ visible }: { visible: boolean }) {
                 disabled={disabled}
                 onClick={() => goTo(to)}
                 aria-label={disabled ? undefined : stationLabel(STATIONS[to].id, t)}
-                className="grid size-8 place-items-center rounded-full border border-white/15 bg-white/5 transition hover:border-primary/60 hover:text-primary disabled:opacity-30"
+                className="grid size-6 place-items-center rounded-full border border-white/15 bg-white/5 transition hover:border-primary/60 hover:text-primary disabled:opacity-30 sm:size-7"
               >
-                <Icon className="size-4" />
+                <Icon className="size-3.5" />
               </button>
             ))}
-          </div>
-        </div>
+          </li>
+        </ol>
       </motion.nav>
     </>
   )

@@ -14,6 +14,7 @@ import { Reader } from './Reader'
 import { TextPlane } from './TextPlane'
 import { BOARD_H, BOARD_W, BOARD_Y, BOARD_Z, COMPANIES, headX, LINE_X, LINE_Z, xOfYear, YEAR0, YEAR1 } from './timelineLayout'
 import { drawLines, SANS, useCanvasTexture, wrapRuns, type Run } from './textCanvas'
+import { useOpenRequest } from './useOpenRequest'
 import type { ScrollProgress } from './useScrollProgress'
 
 type Company = Resume['experience'][number]
@@ -358,6 +359,8 @@ export function Timeline({ progress }: { progress: RefObject<ScrollProgress> }) 
     heading.current = { to: i, ttl: 3 }
     window.scrollTo({ top: STATION_AT[EXPERIENCE.first + i] * innerHeight, behavior: 'smooth' })
   }
+
+  useOpenRequest('experience', walk, setSelected)
 
   // Walking on to another stop puts the panel back.
   useFrame((_, dt) => {

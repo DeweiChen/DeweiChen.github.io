@@ -3,6 +3,14 @@
 /** Window event with `detail: boolean`, fired when a detail panel opens or closes. */
 export const READER_EVENT = 'tour:reader'
 
+/** Window event asking a walk to open the detail panel of one of its stops, e.g. from the keyboard. */
+export const OPEN_EVENT = 'tour:open'
+export interface OpenDetail {
+  id: 'experience' | 'sideProjects'
+  /** Stop within the walk, counted from its first station. */
+  index: number
+}
+
 export const CYAN = '#7fd8f5'
 export const TEXT = '#d9dcea'
 export const MUTED = '#8d93ab'

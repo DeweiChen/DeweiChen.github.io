@@ -1,7 +1,8 @@
 import { useEffect, useRef, type RefObject } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { CatmullRomCurve3, Vector2, Vector3, type PerspectiveCamera } from 'three'
+import { CatmullRomCurve3, Quaternion, Vector2, Vector3, type PerspectiveCamera } from 'three'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
+import { TourOutline } from './TourOutline'
 import { TourOverlay } from './TourOverlay'
 import { AboutFrame } from './AboutFrame'
 import { Bookshelf } from './Bookshelf'
@@ -41,6 +42,9 @@ function pathParam(at: number) {
   const p = POINT_AT[i] + (POINT_AT[i + 1] - POINT_AT[i]) * (at - i)
   return p / (POINTS.length - 1)
 }
+const FLIGHT_SECONDS = 1.2
+/** How far the camera rises mid-flight, so a jump reads as flying over rather than sliding. */
+const FLIGHT_LIFT = 0.35
 // Scratch vectors for the rig; there is only ever one camera.
 const tmp = { pos: new Vector3(), target: new Vector3(), back: new Vector3(), right: new Vector3() }
 
@@ -52,6 +56,17 @@ const tmp = { pos: new Vector3(), target: new Vector3(), back: new Vector3(), ri
 function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
   const pointer = useRef(new Vector2())
   const sway = useRef(new Vector2())
+  const lastScreens = useRef<number | null>(null)
+  const flight = useRef({
+    active: false,
+    t: 0,
+    from: new Vector3(),
+    fromQ: new Quaternion(),
+    pos: new Vector3(),
+    q: new Quaternion(),
+    last: new Vector3(),
+    lastQ: new Quaternion(),
+  })
 
   useEffect(() => {
     const move = (e: PointerEvent) => pointer.current.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1)
@@ -94,6 +109,29 @@ function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
 
     camera.position.copy(pos)
     camera.lookAt(target)
+
+    // A jump along the tour (an index click) flies there in one arc rather than replaying every stop.
+    const f0 = flight.current
+    if (lastScreens.current !== null && Math.abs(screens - lastScreens.current) > 1) {
+      // The camera already stands at the destination above; start from where it was last frame.
+      f0.from.copy(f0.last)
+      f0.fromQ.copy(f0.lastQ)
+      f0.t = 0
+      f0.active = true
+    }
+    lastScreens.current = screens
+    if (f0.active) {
+      f0.t = Math.min(1, f0.t + dt / FLIGHT_SECONDS)
+      const e = f0.t * f0.t * (3 - 2 * f0.t)
+      f0.pos.lerpVectors(f0.from, camera.position, e)
+      f0.pos.y += Math.sin(Math.PI * e) * FLIGHT_LIFT
+      f0.q.slerpQuaternions(f0.fromQ, camera.quaternion, e)
+      camera.position.copy(f0.pos)
+      camera.quaternion.copy(f0.q)
+      if (f0.t >= 1) f0.active = false
+    }
+    f0.last.copy(camera.position)
+    f0.lastQ.copy(camera.quaternion)
   })
   return null
 }
@@ -149,6 +187,7 @@ export default function ImmersiveScene(props: ImmersiveSceneProps) {
         </Canvas>
       </div>
       <TourOverlay visible={props.direction === 'in'} />
+      {props.direction === 'in' && <TourOutline onExit={props.onExit} />}
     </>
   )
 }

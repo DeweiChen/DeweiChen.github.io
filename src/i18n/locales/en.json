@@ -194,7 +194,9 @@
     "link": "Link",
     "details": "View details",
     "closeDetails": "Click or Esc to close",
-    "exitDoor": "Push the door to go back"
+    "exitDoor": "Push the door to go back",
+    "backToClassic": "Back to the classic page",
+    "skipTour": "Resume in text"
   },
   "format": {
     "present": "Present",

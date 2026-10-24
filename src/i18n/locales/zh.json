@@ -194,7 +194,9 @@
     "link": "連結",
     "details": "查看詳情",
     "closeDetails": "點擊或按 Esc 關閉",
-    "exitDoor": "推開門回到經典版"
+    "exitDoor": "推開門回到經典版",
+    "backToClassic": "回到經典版頁面",
+    "skipTour": "文字版履歷"
   },
   "format": {
     "present": "至今",

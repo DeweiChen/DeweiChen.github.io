@@ -113,3 +113,13 @@ export function sectionOf(stationIndex: number) {
 
 export const EXPERIENCE = SECTIONS.find((s) => s.id === 'experience')!
 export const SIDE_PROJECTS = SECTIONS.find((s) => s.id === 'sideProjects')!
+
+/**
+ * Scrolls the page to station `i`: a neighbour is walked to, anything further is jumped
+ * to at once and the camera flies straight there (see useScrollProgress and CameraRig).
+ */
+export function goToStation(i: number) {
+  const index = Math.min(STATIONS.length - 1, Math.max(0, i))
+  const far = Math.abs(index - tourPosition(scrollY / innerHeight)) > 1.2
+  window.scrollTo({ top: STATION_AT[index] * innerHeight, behavior: far ? 'instant' : 'smooth' })
+}
