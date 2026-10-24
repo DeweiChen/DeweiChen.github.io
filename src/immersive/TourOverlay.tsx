@@ -103,7 +103,26 @@ export function TourOverlay({ visible }: { visible: boolean }) {
   const year = Math.floor(yearOfX(headX(position - EXPERIENCE.first)))
   const [reading, setReading] = useState(false)
   const [collapsed, setCollapsed] = useState(() => coarsePointer)
+  const [idleAtStation, setIdleAtStation] = useState(false)
+  const isIdle = arrived && idleAtStation
   const hudVisible = visible && screens > 0.5 && !reading
+
+  // Dim the title when resting at a station to keep the 3D scene unobstructed.
+  useEffect(() => {
+    if (!arrived) {
+      setIdleAtStation(false)
+      return
+    }
+    const timer = setTimeout(() => setIdleAtStation(true), 2500)
+    const onActivity = () => setIdleAtStation(false)
+    window.addEventListener('scroll', onActivity, { passive: true })
+    window.addEventListener('pointerdown', onActivity, { passive: true })
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('scroll', onActivity)
+      window.removeEventListener('pointerdown', onActivity)
+    }
+  }, [arrived, section])
 
   useEffect(() => {
     const onReader = (e: Event) => setReading((e as CustomEvent<boolean>).detail)
@@ -166,19 +185,27 @@ export function TourOverlay({ visible }: { visible: boolean }) {
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             exit={{ opacity: 0, y: -8, filter: 'blur(6px)' }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className="pointer-events-none fixed top-20 left-4 z-20 sm:top-24 sm:left-8"
+            className="pointer-events-none fixed top-20 left-4 z-20 hidden landscape:block sm:top-24 sm:left-8"
           >
-            <p className="font-mono text-xs tracking-[0.3em] text-muted-foreground">
-              {String(section).padStart(2, '0')} / {String(SECTIONS.length - 1).padStart(2, '0')}
-            </p>
-            <h2 className="mt-1 bg-gradient-to-r from-brand-from to-brand-to bg-clip-text text-3xl font-semibold tracking-wide text-transparent sm:text-5xl">
-              {stationLabel(STATIONS[current].id, t)}
-            </h2>
-            {timeline && (
-              <p className="mt-2 font-mono text-5xl font-light tracking-tight text-foreground/90 tabular-nums sm:text-7xl" aria-live="off">
-                {year}
+            {/* Desktop / landscape full editorial title; hidden in portrait to avoid duplicate HUD pills */}
+            <div
+              className={cn(
+                'transition-opacity duration-700 ease-out',
+                isIdle ? 'opacity-80' : 'opacity-100',
+              )}
+            >
+              <p className="font-mono text-xs tracking-[0.3em] text-muted-foreground">
+                {String(section).padStart(2, '0')} / {String(SECTIONS.length - 1).padStart(2, '0')}
               </p>
-            )}
+              <h2 className="mt-1 bg-gradient-to-r from-brand-from to-brand-to bg-clip-text text-3xl font-semibold tracking-wide text-transparent sm:text-5xl">
+                {stationLabel(STATIONS[current].id, t)}
+              </h2>
+              {timeline && (
+                <p className="mt-2 font-mono text-5xl font-light tracking-tight text-foreground/90 tabular-nums sm:text-7xl" aria-live="off">
+                  {year}
+                </p>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -218,6 +245,11 @@ export function TourOverlay({ visible }: { visible: boolean }) {
               <span className="max-w-[100px] truncate text-xs font-medium text-foreground/90 sm:max-w-[120px]">
                 {stationLabel(STATIONS[current].id, t)}
               </span>
+              {timeline && (
+                <span className="font-mono text-[11px] font-medium text-primary tabular-nums" aria-live="off">
+                  {year}
+                </span>
+              )}
               <Map className="ml-1 size-3.5 text-muted-foreground transition hover:text-foreground" />
             </button>
             <button
