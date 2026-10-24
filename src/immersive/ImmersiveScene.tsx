@@ -192,11 +192,14 @@ export default function ImmersiveScene(props: ImmersiveSceneProps) {
         >
           <color attach="background" args={['#0b0b14']} />
           <Stage {...props} />
-          {!props.lowEnd && (
-            <EffectComposer>
-              <Bloom intensity={0.7} luminanceThreshold={0.35} luminanceSmoothing={0.3} mipmapBlur />
-            </EffectComposer>
-          )}
+          <EffectComposer>
+            <Bloom
+              intensity={props.lowEnd ? 0.45 : 0.7}
+              luminanceThreshold={0.35}
+              luminanceSmoothing={0.3}
+              mipmapBlur
+            />
+          </EffectComposer>
         </Canvas>
       </div>
       <TourOverlay visible={props.direction === 'in'} />

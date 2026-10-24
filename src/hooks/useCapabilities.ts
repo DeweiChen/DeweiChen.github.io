@@ -20,6 +20,11 @@ function subscribe(cb: () => void) {
 /** Whether the immersive mode can run, and whether it should animate. */
 export function useCapabilities() {
   const reducedMotion = useSyncExternalStore(subscribe, () => motionQuery?.matches ?? false, () => false)
-  const lowEnd = (navigator.hardwareConcurrency ?? 8) <= 4 && /Mobi|Android/i.test(navigator.userAgent)
+  // Safari on iOS masks hardwareConcurrency to 4 for anti-fingerprinting.
+  // Modern iOS devices have high-performance GPUs and should not be classified as low-end.
+  const isIOS =
+    typeof navigator !== 'undefined' &&
+    (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1))
+  const lowEnd = !isIOS && (navigator.hardwareConcurrency ?? 8) <= 4 && /Mobi|Android/i.test(navigator.userAgent)
   return { webgl, reducedMotion, lowEnd }
 }
