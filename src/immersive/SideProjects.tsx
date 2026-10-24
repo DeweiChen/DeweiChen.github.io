@@ -7,9 +7,9 @@ import { paintAppScreen } from './appScreens'
 import { CYAN, MUTED, panelBackground, TEXT, type PanelLayout } from './panel'
 import { Reader } from './Reader'
 import { FLOOR_Y, GALLERY } from './roomLayout'
-import { SIDE_PROJECTS, tourPosition } from './stations'
+import { SIDE_PROJECTS, STATION_AT, tourPosition } from './stations'
 import { TextPlane } from './TextPlane'
-import { drawLines, SANS, useCanvasTexture, wrapRuns } from './textCanvas'
+import { drawExternalArrow, drawLines, drawRightArrow, SANS, useCanvasTexture, wrapRuns } from './textCanvas'
 import { useOpenRequest } from './useOpenRequest'
 import { useScanClip } from './useScanClip'
 import type { ScrollProgress } from './useScrollProgress'
@@ -207,8 +207,20 @@ function useWallLabel(project: Project, index: number) {
       }
       ctx.fillStyle = CYAN
       ctx.font = `600 32px ${SANS}`
+      const actionText = t(project.link ? 'labels.link' : 'labels.details')
+      const iconSize = 22
+      const gap = 8
+      const topY = LPY - pad - 8
+      const iconX = LPX - pad - iconSize
+      const iconY = topY + (32 - iconSize) / 2
+
       ctx.textAlign = 'right'
-      ctx.fillText(`${t(project.link ? 'labels.link' : 'labels.details')} ${project.link ? '↗' : '→'}`, LPX - pad, LPY - pad - 8)
+      ctx.fillText(actionText, iconX - gap, topY)
+      if (project.link) {
+        drawExternalArrow(ctx, iconX, iconY, iconSize, CYAN, 2.8)
+      } else {
+        drawRightArrow(ctx, iconX, iconY, iconSize, CYAN, 2.8)
+      }
       ctx.textAlign = 'left'
     },
     [project, index, t],
@@ -323,8 +335,13 @@ function Exhibit({
   )
 }
 
-/** Name, period, description and link of one project, laid out in the reader. Returns the link button's uv rect. */
-function paintProject(ctx: CanvasRenderingContext2D, project: Project, { px, py, css, wide, pad, bottom }: PanelLayout, linkLabel: string) {
+/** Name, period, description and link of one project, laid out in the reader. Returns content height and link UV rect. */
+function paintProject(
+  ctx: CanvasRenderingContext2D,
+  project: Project,
+  { px, py, css, wide, pad, bottom, scrollY = 0 }: PanelLayout,
+  linkLabel: string,
+): { contentHeight: number; linkRect: { u0: number; u1: number; v0: number; v1: number } | null } {
   const glyph = 52 * css
   drawGlyph(ctx, project.id, pad, pad, glyph)
   ctx.textBaseline = 'top'
@@ -337,29 +354,60 @@ function paintProject(ctx: CanvasRenderingContext2D, project: Project, { px, py,
 
   const top = pad + glyph + pad
   const linkH = project.link ? 40 * css : 0
-  for (let size = Math.round((wide ? 19 : 16) * css); size >= 14; size -= 2) {
-    const lines = wrapRuns(ctx, [{ text: project.description, font: `400 ${size}px ${SANS}`, color: TEXT }], px - pad * 2)
-    if (lines.length * size * 1.8 > bottom - top - linkH * 1.5 && size > 14) continue
-    const y = drawLines(ctx, lines, pad, top, size * 1.8)
-    if (!project.link) return null
+  let contentHeight = 0
+  let linkRect: { u0: number; u1: number; v0: number; v1: number } | null = null
 
-    const w = 150 * css
-    const ly = Math.min(y + size, bottom - linkH)
-    ctx.strokeStyle = CYAN
-    ctx.lineWidth = 2 * css
+  const minSize = Math.max(14, Math.round((wide ? 16 : 14) * css))
+  for (let size = Math.round((wide ? 19 : 16) * css); size >= minSize; size -= 2) {
+    const lines = wrapRuns(ctx, [{ text: project.description, font: `400 ${size}px ${SANS}`, color: TEXT }], px - pad * 2)
+    const totalH = lines.length * size * 1.8 + (project.link ? linkH + size : 0)
+    if (totalH > bottom - top && size > minSize) continue
+
+    contentHeight = totalH
+
+    // Clip scrollable content area
+    ctx.save()
     ctx.beginPath()
-    ctx.roundRect(pad, ly, w, linkH, linkH / 2)
-    ctx.stroke()
-    ctx.fillStyle = CYAN
-    ctx.font = `600 ${15 * css}px ${SANS}`
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText(`${linkLabel} ↗`, pad + w / 2, ly + linkH / 2)
-    ctx.textAlign = 'left'
-    // uv runs bottom-up.
-    return { u0: pad / px, u1: (pad + w) / px, v0: 1 - (ly + linkH) / py, v1: 1 - ly / py }
+    ctx.rect(0, top, px, bottom - top)
+    ctx.clip()
+
+    const y = drawLines(ctx, lines, pad, top - scrollY, size * 1.8)
+    if (project.link) {
+      const w = 150 * css
+      const ly = y + size
+      ctx.strokeStyle = CYAN
+      ctx.lineWidth = 2 * css
+      ctx.beginPath()
+      ctx.roundRect(pad, ly, w, linkH, linkH / 2)
+      ctx.stroke()
+      ctx.fillStyle = CYAN
+      const fontSize = 15 * css
+      ctx.font = `600 ${fontSize}px ${SANS}`
+      ctx.textBaseline = 'middle'
+      const textW = ctx.measureText(linkLabel).width
+      const iconSize = fontSize * 0.75
+      const gap = fontSize * 0.35
+      const totalW = textW + gap + iconSize
+      const startX = pad + (w - totalW) / 2
+
+      ctx.textAlign = 'left'
+      ctx.fillText(linkLabel, startX, ly + linkH / 2)
+
+      const iconX = startX + textW + gap
+      const iconY = ly + linkH / 2 - iconSize / 2
+      drawExternalArrow(ctx, iconX, iconY, iconSize, CYAN, 2 * css)
+
+      // Only clickable if within visible content area
+      if (ly + linkH >= top && ly <= bottom) {
+        linkRect = { u0: pad / px, u1: (pad + w) / px, v0: 1 - (ly + linkH) / py, v1: 1 - ly / py }
+      }
+    }
+
+    ctx.restore()
+    break
   }
-  return null
+
+  return { contentHeight, linkRect }
 }
 
 /** Side projects: a gallery wing off the hall, walked one exhibit at a time. */
@@ -375,11 +423,27 @@ export function SideProjects({ progress }: { progress: RefObject<ScrollProgress>
   // Position along the walk: 0 at the first exhibit.
   const walk = () => tourPosition(progress.current.screens) - SIDE_PROJECTS.first
 
+  // An exhibit clicked from another stop is walked to first and opened on arrival;
+  // the request lapses if the walk is cut short.
+  const heading = useRef<{ to: number; ttl: number } | null>(null)
+  const select = (i: number) => {
+    if (Math.abs(walk() - i) < 0.1) return setSelected(i)
+    setSelected(null)
+    heading.current = { to: i, ttl: 3 }
+    window.scrollTo({ top: STATION_AT[SIDE_PROJECTS.first + i] * innerHeight, behavior: 'smooth' })
+  }
+
   useOpenRequest('sideProjects', walk, setSelected)
 
   // Walking on puts the panel back.
-  useFrame(() => {
-    if (selected !== null && Math.abs(walk() - selected) > 0.6) setSelected(null)
+  useFrame((_, dt) => {
+    const w = walk()
+    const h = heading.current
+    if (h && Math.abs(w - h.to) < 0.02) {
+      heading.current = null
+      setSelected(h.to)
+    } else if (h && (h.ttl -= Math.min(dt, 0.05)) < 0) heading.current = null
+    if (selected !== null && Math.abs(w - selected) > 0.6) setSelected(null)
   })
 
   return (
@@ -393,7 +457,7 @@ export function SideProjects({ progress }: { progress: RefObject<ScrollProgress>
           walk={walk}
           selected={selected === i}
           reading={selected !== null}
-          onSelect={() => setSelected(i)}
+          onSelect={() => select(i)}
           labelRef={(g) => {
             labels.current[i] = g
           }}
@@ -403,7 +467,9 @@ export function SideProjects({ progress }: { progress: RefObject<ScrollProgress>
       <Reader
         item={selected === null ? null : sideProjects[selected]}
         paint={(ctx, project, layout) => {
-          link.current = paintProject(ctx, project, layout, t('labels.link'))
+          const { contentHeight, linkRect } = paintProject(ctx, project, layout, t('labels.link'))
+          link.current = linkRect
+          return contentHeight
         }}
         deps={[]}
         source={() => (last === null ? null : labels.current[last])}

@@ -15,6 +15,7 @@ import { Timeline } from './Timeline'
 import { SplatPortrait, type PixelRect } from './SplatPortrait'
 import { STATIONS, tourPosition } from './stations'
 import { useScrollProgress, type ScrollProgress } from './useScrollProgress'
+import { READER_EVENT } from './panel'
 
 export interface ImmersiveSceneProps {
   cardRect: PixelRect | null
@@ -58,6 +59,7 @@ function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
   const pointer = useRef(new Vector2())
   const sway = useRef(new Vector2())
   const lastScreens = useRef<number | null>(null)
+  const reading = useRef(false)
   const flight = useRef({
     active: false,
     t: 0,
@@ -70,7 +72,16 @@ function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
   })
 
   useEffect(() => {
+    const onReader = (e: Event) => {
+      reading.current = (e as CustomEvent<boolean>).detail
+    }
+    window.addEventListener(READER_EVENT, onReader)
+    return () => window.removeEventListener(READER_EVENT, onReader)
+  }, [])
+
+  useEffect(() => {
     const move = (e: PointerEvent) => {
+      if (reading.current) return
       pointer.current.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1)
       if (progress.current.screens > 0) invalidate()
     }
@@ -80,6 +91,7 @@ function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
 
   // Priority -1 runs after useScrollProgress (-2) and before scene objects (0) such as Reader.
   useFrame(({ camera, size }, dt) => {
+    if (reading.current) return
     const d = Math.min(dt, 0.05)
     const { screens } = progress.current
     const u = pathParam(tourPosition(screens))

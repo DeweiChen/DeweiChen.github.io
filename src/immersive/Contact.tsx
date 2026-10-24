@@ -7,7 +7,7 @@ import { CYAN, MUTED, panelBackground, TEXT } from './panel'
 import { DOOR, FLOOR_Y } from './roomLayout'
 import { STATIONS, stationPresence } from './stations'
 import { TextPlane } from './TextPlane'
-import { SANS, useCanvasTexture, wrapRuns } from './textCanvas'
+import { drawExternalArrow, drawReturnArrow, SANS, useCanvasTexture, wrapRuns } from './textCanvas'
 import { useScanClip } from './useScanClip'
 import type { ScrollProgress } from './useScrollProgress'
 
@@ -90,6 +90,7 @@ function Plate({ presence }: { presence: () => number }) {
 function WallButton({
   label,
   href,
+  external,
   y,
   z,
   clip,
@@ -97,6 +98,7 @@ function WallButton({
 }: {
   label: string
   href: string
+  external?: boolean
   y: number
   z: number
   clip: Plane
@@ -125,13 +127,32 @@ function WallButton({
       ctx.strokeStyle = 'rgba(127, 216, 245, 0.6)'
       ctx.lineWidth = 4
       ctx.stroke()
-      ctx.fillStyle = CYAN
-      ctx.font = `600 ${py * 0.36}px ${SANS}`
-      ctx.textAlign = 'center'
+
+      const fontSize = py * 0.36
+      ctx.font = `600 ${fontSize}px ${SANS}`
       ctx.textBaseline = 'middle'
-      ctx.fillText(label, px / 2, py / 2 + 2)
+
+      if (external) {
+        const textW = ctx.measureText(label).width
+        const iconSize = fontSize * 0.52
+        const gap = fontSize * 0.22
+        const totalW = textW + gap + iconSize
+        const startX = (px - totalW) / 2
+
+        ctx.textAlign = 'left'
+        ctx.fillStyle = CYAN
+        ctx.fillText(label, startX, py / 2 + 2)
+
+        const iconX = startX + textW + gap
+        const iconY = py / 2 - iconSize / 2 + 2
+        drawExternalArrow(ctx, iconX, iconY, iconSize, CYAN, 4)
+      } else {
+        ctx.textAlign = 'center'
+        ctx.fillStyle = CYAN
+        ctx.fillText(label, px / 2, py / 2 + 2)
+      }
     },
-    [label, px],
+    [label, external, px],
   )
 
   useFrame((_, dt) => {
@@ -209,11 +230,25 @@ function Door({ clip, presence, onExit }: { clip: Plane; presence: () => number;
       ctx.strokeStyle = 'rgba(127, 216, 245, 0.5)'
       ctx.lineWidth = 3
       ctx.stroke()
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillStyle = CYAN
+
+      const text = t('labels.classic')
       ctx.font = `600 56px ${SANS}`
-      ctx.fillText(`↩ ${t('labels.classic')}`, px / 2, 78)
+      ctx.textBaseline = 'middle'
+
+      const textW = ctx.measureText(text).width
+      const iconSize = 40
+      const gap = 16
+      const totalW = iconSize + gap + textW
+      const startX = (px - totalW) / 2
+      const iconY = 78 - iconSize / 2
+
+      drawReturnArrow(ctx, startX, iconY, iconSize, CYAN, 4.5)
+
+      ctx.textAlign = 'left'
+      ctx.fillStyle = CYAN
+      ctx.fillText(text, startX + iconSize + gap, 78)
+
+      ctx.textAlign = 'center'
       ctx.fillStyle = MUTED
       ctx.font = `400 34px ${SANS}`
       ctx.fillText(t('labels.exitDoor'), px / 2, 146, px - 40)
@@ -291,8 +326,8 @@ export function Contact({ progress, onExit }: { progress: RefObject<ScrollProgre
   const presence = () => stationPresence(progress.current.screens, INDEX)
   const buttons = [
     { label: 'Email', href: `mailto:${r.email}` },
-    { label: 'GitHub ↗', href: r.links.github },
-    { label: 'LinkedIn ↗', href: r.links.linkedin },
+    { label: 'GitHub', href: r.links.github, external: true },
+    { label: 'LinkedIn', href: r.links.linkedin, external: true },
   ]
   const span = buttons.length * BUTTON.w + (buttons.length - 1) * BUTTON.gap
 

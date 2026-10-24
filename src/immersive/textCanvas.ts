@@ -60,6 +60,101 @@ export function drawLines(ctx: CanvasRenderingContext2D, lines: Piece[][], left:
 }
 
 /**
+ * Draw a clean vector external link arrow (up-right) without relying on Unicode emojis.
+ */
+export function drawExternalArrow(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+  strokeWidth = 2,
+) {
+  ctx.save()
+  ctx.strokeStyle = color
+  ctx.lineWidth = strokeWidth
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+
+  ctx.beginPath()
+  // Diagonal stem
+  ctx.moveTo(x + size * 0.18, y + size * 0.82)
+  ctx.lineTo(x + size * 0.82, y + size * 0.18)
+  // Arrowhead wings
+  ctx.moveTo(x + size * 0.42, y + size * 0.18)
+  ctx.lineTo(x + size * 0.82, y + size * 0.18)
+  ctx.lineTo(x + size * 0.82, y + size * 0.58)
+  ctx.stroke()
+  ctx.restore()
+}
+
+/**
+ * Draw a clean horizontal vector arrow pointing right without relying on Unicode emojis.
+ */
+export function drawRightArrow(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+  strokeWidth = 2,
+) {
+  ctx.save()
+  ctx.strokeStyle = color
+  ctx.lineWidth = strokeWidth
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+
+  const cy = y + size * 0.5
+  ctx.beginPath()
+  // Horizontal stem
+  ctx.moveTo(x + size * 0.15, cy)
+  ctx.lineTo(x + size * 0.82, cy)
+  // Arrowhead wings
+  ctx.moveTo(x + size * 0.48, cy - size * 0.32)
+  ctx.lineTo(x + size * 0.82, cy)
+  ctx.lineTo(x + size * 0.48, cy + size * 0.32)
+  ctx.stroke()
+  ctx.restore()
+}
+
+/**
+ * Draw a clean curved return arrow (leftwards with hook) without relying on Unicode emojis.
+ */
+export function drawReturnArrow(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+  strokeWidth = 3,
+) {
+  ctx.save()
+  ctx.strokeStyle = color
+  ctx.lineWidth = strokeWidth
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+
+  const tipX = x + size * 0.18
+  const tipY = y + size * 0.36
+
+  ctx.beginPath()
+  // Arrowhead wings
+  ctx.moveTo(x + size * 0.46, y + size * 0.12)
+  ctx.lineTo(tipX, tipY)
+  ctx.lineTo(x + size * 0.46, y + size * 0.6)
+
+  // Stem curving from bottom-right up and left to tip
+  ctx.moveTo(tipX, tipY)
+  ctx.lineTo(x + size * 0.56, tipY)
+  ctx.arcTo(x + size * 0.82, tipY, x + size * 0.82, y + size * 0.62, size * 0.26)
+  ctx.lineTo(x + size * 0.82, y + size * 0.85)
+
+  ctx.stroke()
+  ctx.restore()
+}
+
+/**
  * A canvas texture redrawn whenever `deps` change and once more after web fonts
  * finish loading (the first paint may fall back to a system face).
  */

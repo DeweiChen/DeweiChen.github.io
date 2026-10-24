@@ -282,8 +282,13 @@ function Board({
   )
 }
 
-/** Full role history of one company, laid out in the reader. */
-function paintDetail(ctx: CanvasRenderingContext2D, company: Company, logo: HTMLImageElement | null, { px, css, wide, pad, bottom }: PanelLayout) {
+/** Full role history of one company, laid out in the reader. Returns content height. */
+function paintDetail(
+  ctx: CanvasRenderingContext2D,
+  company: Company,
+  logo: HTMLImageElement | null,
+  { px, css, wide, pad, bottom, scrollY = 0 }: PanelLayout,
+): number {
   const logoSize = (wide ? 48 : 40) * css
   drawLogo(ctx, logo, pad, pad, logoSize, TILE_LOGOS.has(company.id))
   ctx.textBaseline = 'middle'
@@ -293,8 +298,11 @@ function paintDetail(ctx: CanvasRenderingContext2D, company: Company, logo: HTML
 
   const top = pad + logoSize + pad * 0.6
   const maxWidth = px - pad * 2
-  // Largest font size at which every role fits, capped so short histories don't blow up to fill the panel.
-  for (let size = Math.round((wide ? 20 : 16) * css); size >= 16; size -= 2) {
+  let totalHeight = 0
+
+  // Largest font size at which every role fits down to minSize, allowing scrolling when content exceeds viewport.
+  const minSize = Math.max(16, Math.round((wide ? 16 : 14) * css))
+  for (let size = Math.round((wide ? 20 : 16) * css); size >= minSize; size -= 2) {
     const lineHeight = size * 1.8
     const blocks = company.roles.map((role) => ({
       role,
@@ -318,9 +326,17 @@ function paintDetail(ctx: CanvasRenderingContext2D, company: Company, logo: HTML
       (h, b) => h + header + [...b.bullets, ...b.groups].reduce((n, l) => n + l.length, 0) * lineHeight + roleGap,
       -roleGap,
     )
-    if (height > bottom - top && size > 16) continue
+    if (height > bottom - top && size > minSize) continue
 
-    let y = top
+    totalHeight = height
+
+    // Clip content area so it scrolls cleanly between top header and bottom footer
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(0, top, px, bottom - top)
+    ctx.clip()
+
+    let y = top - scrollY
     for (const b of blocks) {
       ctx.textBaseline = 'top'
       ctx.font = `500 ${size * 0.95}px ${SANS}`
@@ -341,8 +357,11 @@ function paintDetail(ctx: CanvasRenderingContext2D, company: Company, logo: HTML
       for (const lines of [...b.bullets, ...b.groups]) y = drawLines(ctx, lines, pad, y, lineHeight)
       y += roleGap
     }
+    ctx.restore()
     break
   }
+
+  return totalHeight
 }
 
 /**

@@ -36,8 +36,12 @@ export interface PanelLayout {
   css: number
   wide: boolean
   pad: number
+  /** Top y boundary where scrollable content begins. */
+  top: number
   /** Lowest y the content may reach; the close hint sits below it. */
   bottom: number
+  /** Current vertical scroll offset in canvas pixels. */
+  scrollY: number
 }
 
 /** Share of the viewport height the panel fills when held up, on wide and on portrait screens. */

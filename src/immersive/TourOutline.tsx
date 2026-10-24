@@ -138,7 +138,7 @@ export function TourOutline({ onExit }: { onExit?: () => void }) {
             </TourButton>
             {p.link && (
               <TourLink station={SIDE_PROJECTS.first + i} href={p.link}>
-                {t('labels.link')}: {p.name} ↗
+                {t('labels.link')}: {p.name}
               </TourLink>
             )}
           </article>
@@ -167,14 +167,14 @@ export function TourOutline({ onExit }: { onExit?: () => void }) {
           Email: {r.email}
         </TourLink>
         <TourLink station={contact} href={r.links.github}>
-          GitHub ↗
+          GitHub
         </TourLink>
         <TourLink station={contact} href={r.links.linkedin}>
-          LinkedIn ↗
+          LinkedIn
         </TourLink>
         {onExit && (
           <TourButton station={contact} onClick={onExit}>
-            ↩ {t('labels.backToClassic')}
+            {t('labels.backToClassic')}
           </TourButton>
         )}
       </section>

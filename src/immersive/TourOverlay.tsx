@@ -112,7 +112,7 @@ export function TourOverlay({ visible }: { visible: boolean }) {
   }, [])
 
   useEffect(() => {
-    if (!visible) return
+    if (!visible || reading) return
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
       if (e.key === 'ArrowRight') goTo(current + 1)
@@ -124,7 +124,7 @@ export function TourOverlay({ visible }: { visible: boolean }) {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [visible, current])
+  }, [visible, reading, current])
 
   return (
     <>
