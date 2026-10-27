@@ -18,6 +18,7 @@ import { railPose } from './rail'
 import { STATIONS, tourPosition } from './stations'
 import { useScrollProgress, type ScrollProgress } from './useScrollProgress'
 import { READER_EVENT } from './panel'
+import { useTourSounds } from './sound'
 
 export interface ImmersiveSceneProps {
   cardRect: PixelRect | null
@@ -151,6 +152,7 @@ export default function ImmersiveScene(props: ImmersiveSceneProps) {
     if (leaving) setFree(false)
   }, [leaving])
   useEffect(() => () => setFree(false), [])
+  useTourSounds(!leaving)
 
   return (
     <>

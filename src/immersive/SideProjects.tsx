@@ -10,6 +10,7 @@ import { shownWhenFree } from './freeMode'
 import { Beam, Fixture, GlowPool, type Rgb } from './GlowPool'
 import { CEILING_Y, FLOOR_Y, GALLERY } from './roomLayout'
 import { goToStation, SIDE_PROJECTS, tourPosition } from './stations'
+import { play } from './sound'
 import { TextPlane } from './TextPlane'
 import { drawExternalArrow, drawLines, drawRightArrow, SANS, useCanvasTexture, useImage, wrapRuns } from './textCanvas'
 import { useOpenRequest } from './useOpenRequest'
@@ -319,11 +320,13 @@ function Exhibit({
   const handlers = {
     onPointerOver: (e: ThreeEvent<PointerEvent>) => {
       e.stopPropagation()
+      play('hover')
       setHovered(true)
     },
     onPointerOut: () => setHovered(false),
     onClick: (e: ThreeEvent<MouseEvent>) => {
       e.stopPropagation()
+      play('click')
       onSelect()
     },
   }

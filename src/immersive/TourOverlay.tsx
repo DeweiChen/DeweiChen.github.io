@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ChevronDown, ChevronLeft, ChevronRight, Footprints, Map, Route } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, Footprints, Map, Route, Volume2, VolumeX } from 'lucide-react'
 import { SocialLinks } from '@/components/SocialLinks'
 import { useTranslation } from 'react-i18next'
 import { useResume } from '@/i18n/useResume'
 import { cn } from '@/lib/utils'
 import { POSE_EVENT, setFree, useFreeMode } from './freeMode'
 import { READER_EVENT } from './panel'
+import { isMuted, setMuted, useMuted } from './sound'
 import { EXPERIENCE, goToStation, SECTIONS, sectionOf, STATIONS, TOUR_LENGTH, stationLabel, tourPosition } from './stations'
 import { OUTLINE } from './roomLayout'
 import { headX, yearOfX } from './timelineLayout'
@@ -124,6 +125,29 @@ function ModeToggle({ free, compact }: { free: boolean; compact?: boolean }) {
   )
 }
 
+/** Mutes and unmutes the room's sound effects. */
+function SoundToggle({ compact }: { compact?: boolean }) {
+  const { t } = useTranslation()
+  const muted = useMuted()
+  const label = muted ? t('labels.soundOn') : t('labels.soundOff')
+  const Icon = muted ? VolumeX : Volume2
+  return (
+    <button
+      type="button"
+      onClick={() => setMuted(!muted)}
+      aria-label={label}
+      aria-pressed={!muted}
+      title={label}
+      className={cn(
+        'grid place-items-center rounded-full border border-white/10 bg-white/5 text-muted-foreground transition hover:border-primary/60 hover:text-primary',
+        compact ? 'size-7' : 'size-5',
+      )}
+    >
+      <Icon className={compact ? 'size-3.5' : 'size-3'} />
+    </button>
+  )
+}
+
 /** Everything DOM in immersive mode: the hero caption, the scroll track that drives the tour, and the HUD. */
 export function TourOverlay({ visible }: { visible: boolean }) {
   const r = useResume()
@@ -179,6 +203,7 @@ export function TourOverlay({ visible }: { visible: boolean }) {
       else if (e.key === 'ArrowLeft' && !free) goTo(current - 1)
       else if (/^[1-9]$/.test(e.key) && Number(e.key) <= SECTIONS.length) goTo(SECTIONS[Number(e.key) - 1].first)
       else if (e.key === 'm' || e.key === 'M') setCollapsed((c) => !c)
+      else if (e.key === 'v' || e.key === 'V') setMuted(!isMuted())
       else return
       e.preventDefault()
     }
@@ -284,6 +309,7 @@ export function TourOverlay({ visible }: { visible: boolean }) {
               <Map className="ml-1 size-3.5 text-muted-foreground transition hover:text-foreground" />
             </button>
             <ModeToggle free={free} compact />
+            <SoundToggle compact />
             <button
               type="button"
               disabled={current === STATIONS.length - 1}
@@ -305,6 +331,7 @@ export function TourOverlay({ visible }: { visible: boolean }) {
               </div>
               <div className="flex items-center gap-1">
                 <ModeToggle free={free} />
+                <SoundToggle />
                 <button
                   type="button"
                   onClick={() => setCollapsed(true)}

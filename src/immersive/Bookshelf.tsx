@@ -7,6 +7,7 @@ import { CYAN, MUTED, OPEN_EVENT, TEXT, type OpenDetail, type PanelLayout } from
 import { Reader } from './Reader'
 import { SHELF } from './roomLayout'
 import { goToStation, STATIONS, stationPresence } from './stations'
+import { play } from './sound'
 import { TextPlane } from './TextPlane'
 import { drawLines, SANS, useCanvasTexture, wrapRuns } from './textCanvas'
 import { useScanClip } from './useScanClip'
@@ -116,6 +117,7 @@ function Book({ spec, clip, visible }: { spec: BookSpec; clip: Plane; visible: (
 
   const over = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation()
+    play('hover')
     setHovered(true)
   }
 
@@ -235,11 +237,13 @@ function Cover({
             glow={() => lift.current * 0.3}
             onPointerOver={(e) => {
               e.stopPropagation()
+              play('hover')
               setHovered(true)
             }}
             onPointerOut={() => setHovered(false)}
             onClick={(e) => {
               e.stopPropagation()
+              play('click')
               onSelect()
             }}
           />
@@ -449,11 +453,13 @@ function Keepsake({
         ref={spin}
         onPointerOver={(e) => {
           e.stopPropagation()
+          play('hover')
           setHovered(true)
         }}
         onPointerOut={() => setHovered(false)}
         onClick={(e) => {
           e.stopPropagation()
+          play('click')
           onSelect()
         }}
       >

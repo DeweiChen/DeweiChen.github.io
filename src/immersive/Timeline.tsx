@@ -10,6 +10,7 @@ import { shownWhenFree } from './freeMode'
 import { GlowPool } from './GlowPool'
 import { FLOOR_Y } from './roomLayout'
 import { EXPERIENCE, goToStation, tourPosition } from './stations'
+import { play } from './sound'
 import { CYAN, MUTED, panelBackground, TEXT, type PanelLayout } from './panel'
 import { Reader } from './Reader'
 import { TextPlane } from './TextPlane'
@@ -258,10 +259,12 @@ function Board({
 
   const over = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation()
+    play('hover')
     setHovered(true)
   }
   const click = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
+    play('click')
     onSelect()
   }
 

@@ -4,6 +4,7 @@ import { Euler, Vector2, Vector3, type PerspectiveCamera } from 'three'
 import { Flight, POSE_EVENT, WALK_EVENT } from './freeMode'
 import { READER_EVENT } from './panel'
 import { railPose } from './rail'
+import { play } from './sound'
 import { LIVING } from './roomLayout'
 import { nearestStation, STATION_AT, STATIONS } from './stations'
 
@@ -14,6 +15,8 @@ const PITCH_MAX = 1.05
 const SPEED = 1.8
 /** A pointer that moves further than this between down and up was a drag, not a click. */
 const DRAG_PX = 6
+/** Room units walked between two footsteps. */
+const STRIDE = 0.55
 const KEYS = {
   forward: ['KeyW', 'ArrowUp'],
   back: ['KeyS', 'ArrowDown'],
@@ -70,6 +73,7 @@ export function FreeRig() {
   const reading = useRef(false)
   const flight = useRef(new Flight())
   const lastPose = useRef<[number, number]>([NaN, NaN])
+  const stride = useRef(0)
 
   useEffect(() => {
     const onReader = (e: Event) => {
@@ -201,6 +205,7 @@ export function FreeRig() {
     // Somewhere else picked a station: fly to where the tour would stand there.
     const asked = nearestStation(scrollY / innerHeight)
     if (asked !== synced.current) {
+      play('move', asked > synced.current ? 1 : 0)
       synced.current = asked
       flight.current.start(camera.position, camera.quaternion)
       railPose(asked, camera as PerspectiveCamera, size.width / size.height, pos, tmp.target)
@@ -211,6 +216,8 @@ export function FreeRig() {
       push.current = 0
     } else if (!flight.current.active) {
       let moving = false
+      const wasX = pos.x
+      const wasZ = pos.z
       const fx = -Math.sin(v.yaw)
       const fz = -Math.cos(v.yaw)
       const has = (codes: string[]) => codes.some((c) => held.current.has(c))
@@ -239,6 +246,12 @@ export function FreeRig() {
       pos.x = Math.min(BOUNDS.x1, Math.max(BOUNDS.x0, pos.x))
       pos.z = Math.min(BOUNDS.z1, Math.max(BOUNDS.z0, pos.z))
       if (moving) invalidate()
+
+      stride.current += Math.hypot(pos.x - wasX, pos.z - wasZ)
+      if (stride.current > STRIDE) {
+        stride.current = 0
+        play('step')
+      }
 
       // Tell the rest of the scene which station this is.
       const at = pickStation(pos, v.yaw, synced.current)

@@ -3,6 +3,7 @@ import { useResume } from '@/i18n/useResume'
 import { shownWhenFree } from './freeMode'
 import { FRAME } from './roomLayout'
 import { goToStation, STATIONS, stationPresence } from './stations'
+import { play } from './sound'
 import { TextPlane } from './TextPlane'
 import { drawLines, SANS, useCanvasTexture, wrapRuns } from './textCanvas'
 import type { ScrollProgress } from './useScrollProgress'
@@ -58,6 +59,7 @@ export function AboutFrame({ progress }: { progress: RefObject<ScrollProgress> }
       position={[FRAME.center[0], FRAME.center[1], FRAME.center[2] + 0.025]}
       onClick={(e) => {
         e.stopPropagation()
+        play('click')
         goToStation(INDEX)
       }}
       reveal={() => {

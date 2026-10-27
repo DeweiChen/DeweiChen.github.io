@@ -6,6 +6,7 @@ import { GlowPool } from './GlowPool'
 import { shownWhenFree } from './freeMode'
 import { CERTS, LAMP } from './roomLayout'
 import { goToStation, STATIONS, stationPresence } from './stations'
+import { play } from './sound'
 import { TextPlane } from './TextPlane'
 import { SANS, useCanvasTexture, wrapRuns } from './textCanvas'
 import type { ScrollProgress } from './useScrollProgress'
@@ -94,6 +95,7 @@ function Certificate({ degree, y, lit }: { degree: Degree; y: number; lit: () =>
       glow={() => lit() * 0.18}
       onClick={(e) => {
         e.stopPropagation()
+        play('click')
         goToStation(INDEX)
       }}
     />

@@ -8,6 +8,7 @@ import { shownWhenFree } from './freeMode'
 import { GlowPool } from './GlowPool'
 import { DOOR, FLOOR_Y } from './roomLayout'
 import { goToStation, STATIONS, stationPresence } from './stations'
+import { play } from './sound'
 import { TextPlane } from './TextPlane'
 import { drawExternalArrow, drawReturnArrow, SANS, useCanvasTexture, wrapRuns } from './textCanvas'
 import { useScanClip } from './useScanClip'
@@ -183,11 +184,13 @@ function WallButton({
         glow={() => pop.current * 0.4}
         onPointerOver={(e: ThreeEvent<PointerEvent>) => {
           e.stopPropagation()
+          play('hover')
           setHovered(true)
         }}
         onPointerOut={() => setHovered(false)}
         onClick={(e) => {
           e.stopPropagation()
+          play('click')
           // From across the room, the first click only goes to the wall.
           if (presence() < 0.9) return goToStation(INDEX)
           press.current = 1
@@ -305,11 +308,13 @@ function Door({ clip, presence, onExit }: { clip: Plane; presence: () => number;
             material={leaf}
             onPointerOver={(e) => {
               e.stopPropagation()
+              play('hover')
               setHovered(true)
             }}
             onPointerOut={() => setHovered(false)}
             onClick={(e) => {
               e.stopPropagation()
+              play('click')
               if (presence() < 0.9) return goToStation(INDEX)
               setPushed(true)
             }}
