@@ -81,7 +81,7 @@ export const experience: CompanyData[] = [
     ],
   },
   {
-    id: 'vive',
+    id: 'htc',
     roles: [
       {
         id: 'principal',
@@ -98,11 +98,8 @@ export const experience: CompanyData[] = [
           },
         ],
       },
+      { id: 'engineer', title: 'Engineer', period: { start: '2015-09', end: '2017-05' } },
     ],
-  },
-  {
-    id: 'htc',
-    roles: [{ id: 'engineer', title: 'Engineer', period: { start: '2015-09', end: '2017-05' } }],
   },
 ]
 

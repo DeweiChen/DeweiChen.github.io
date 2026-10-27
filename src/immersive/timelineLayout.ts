@@ -8,6 +8,8 @@ export const BOARD_H = 0.68
 export const BOARD_Y = -0.7
 export const BOARD_Z = -0.05
 const BOARD_SPACING = 1.2
+/** The row sits left of the room's centre, clear of the side-project gallery along the right wall. */
+const CENTER_X = -0.6
 
 function yearOf(date: string) {
   const [y, m] = date.split('-').map(Number)
@@ -27,17 +29,18 @@ function spanOf(periods: Period[]) {
 export const COMPANIES = experience
   .map((c, index) => ({ index, ...spanOf(c.roles.map((r) => r.period)) }))
   .reverse()
-  .map((c, k, all) => ({ ...c, x: -((all.length - 1) * BOARD_SPACING) / 2 + k * BOARD_SPACING }))
+  .map((c, k, all) => ({ ...c, x: CENTER_X - ((all.length - 1) * BOARD_SPACING) / 2 + k * BOARD_SPACING }))
 
-/** Half the line's length: it runs a little past the outer boards, and grows with the number of companies. */
-export const LINE_X = Math.max(3.0, ((COMPANIES.length - 1) * BOARD_SPACING) / 2 + 0.6)
+/** Ends of the line: it runs a little past the outer boards, and grows with the number of companies. */
+export const LINE_X0 = COMPANIES[0].x - 0.6
+export const LINE_X1 = COMPANIES[COMPANIES.length - 1].x + 0.6
 
 export const YEAR0 = Math.floor(COMPANIES[0].start)
 export const YEAR1 = Math.floor(Math.max(...COMPANIES.map((c) => c.end))) + 1
 
 // The line is not to scale: each company's start year sits right under its board,
 // so walking from board to board is walking from year to year.
-const ANCHORS: [number, number][] = [[YEAR0, -LINE_X], ...COMPANIES.map((c): [number, number] => [c.start, c.x]), [YEAR1, LINE_X]]
+const ANCHORS: [number, number][] = [[YEAR0, LINE_X0], ...COMPANIES.map((c): [number, number] => [c.start, c.x]), [YEAR1, LINE_X1]]
 
 function piecewise(v: number, from: 0 | 1) {
   const to = 1 - from
@@ -61,8 +64,8 @@ export const yearOfX = (x: number) => piecewise(x, 1)
 export function headX(walk: number) {
   const n = COMPANIES.length
   const clamp = (v: number) => Math.min(1, Math.max(0, v))
-  if (walk <= 0) return -LINE_X + (COMPANIES[0].x + LINE_X) * clamp(walk + 1)
-  if (walk >= n - 1) return COMPANIES[n - 1].x + (LINE_X - COMPANIES[n - 1].x) * clamp(walk - (n - 1))
+  if (walk <= 0) return LINE_X0 + (COMPANIES[0].x - LINE_X0) * clamp(walk + 1)
+  if (walk >= n - 1) return COMPANIES[n - 1].x + (LINE_X1 - COMPANIES[n - 1].x) * clamp(walk - (n - 1))
   const k = Math.floor(walk)
   return COMPANIES[k].x + (COMPANIES[k + 1].x - COMPANIES[k].x) * (walk - k)
 }

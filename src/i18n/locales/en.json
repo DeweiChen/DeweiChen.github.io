@@ -136,9 +136,9 @@
         }
       }
     },
-    "vive": {
-      "name": "HTC Vive",
-      "summary": "Built the Viveport VR store and Cloud Portal, holding a steady 90 FPS in VR.",
+    "htc": {
+      "name": "HTC",
+      "summary": "Started with Android system apps and framework components for HTC phones, then built the Viveport VR store and Cloud Portal at Vive, holding a steady 90 FPS in VR.",
       "roles": {
         "principal": {
           "bullets": [
@@ -156,13 +156,7 @@
               }
             }
           }
-        }
-      }
-    },
-    "htc": {
-      "name": "HTC",
-      "summary": "Where it started: Android system apps and framework components for HTC phones.",
-      "roles": {
+        },
         "engineer": {
           "bullets": [
             "Developed core Android system apps (Calendar, Wi-Fi Settings, Weather) and framework components; built the iOS companion app for the HTC RE camera with Firebase / Google Analytics."

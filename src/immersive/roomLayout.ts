@@ -1,7 +1,7 @@
 import { BoxGeometry, BufferAttribute, BufferGeometry } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { sideProjects } from '@/data/resume'
-import { LINE_X } from './timelineLayout'
+import { LINE_X0, LINE_X1 } from './timelineLayout'
 
 /** Axis-aligned box in world units. `tone` 0 = shell (walls/floor), 1 = furniture. */
 interface Box {
@@ -30,7 +30,7 @@ export function scanHeight(screens: number) {
 
 // A single rectangular room: living area at the back, the Experience timeline across
 // the middle, and the side-project gallery along the front half of the right wall.
-const W = Math.max(6.4, (LINE_X + 0.2) * 2)
+const W = Math.max(6.4, (Math.max(-LINE_X0, LINE_X1) + 0.2) * 2)
 const BACK_Z = -4
 const H = CEILING_Y - FLOOR_Y
 const WALL_Y = (CEILING_Y + FLOOR_Y) / 2

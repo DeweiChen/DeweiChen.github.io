@@ -136,9 +136,9 @@
         }
       }
     },
-    "vive": {
-      "name": "HTC Vive",
-      "summary": "在 Viveport 打造 VR 商店與 Cloud Portal，追求穩定 90 FPS 的 VR 體驗。",
+    "htc": {
+      "name": "HTC",
+      "summary": "從 HTC 手機的 Android 系統 App 起步，再到 Vive 打造 Viveport VR 商店與 Cloud Portal，追求穩定 90 FPS 的 VR 體驗。",
       "roles": {
         "principal": {
           "bullets": [
@@ -156,13 +156,7 @@
               }
             }
           }
-        }
-      }
-    },
-    "htc": {
-      "name": "HTC",
-      "summary": "職涯起點：開發 HTC 手機的 Android 系統 App 與 Framework 元件。",
-      "roles": {
+        },
         "engineer": {
           "bullets": [
             "開發 Android 核心系統 App（行事曆、Wi-Fi 設定、天氣）與 Framework 元件；打造 HTC RE 相機的 iOS 配套 App，整合 Firebase / Google Analytics。"

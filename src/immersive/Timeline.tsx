@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { MeshStandardMaterial, type Group, type Plane } from 'three'
 import homeeLogo from '@/assets/print/homee.png'
 import htcLogo from '@/assets/print/htc.png'
-import viveLogo from '@/assets/print/vive.png'
 import xrspaceLogo from '@/assets/print/xrspace.png'
 import { useResume, type Resume } from '@/i18n/useResume'
 import { shownWhenFree } from './freeMode'
@@ -14,7 +13,7 @@ import { EXPERIENCE, goToStation, tourPosition } from './stations'
 import { CYAN, MUTED, panelBackground, TEXT, type PanelLayout } from './panel'
 import { Reader } from './Reader'
 import { TextPlane } from './TextPlane'
-import { BOARD_H, BOARD_W, BOARD_Y, BOARD_Z, COMPANIES, headX, LINE_X, LINE_Z, xOfYear, YEAR0, YEAR1 } from './timelineLayout'
+import { BOARD_H, BOARD_W, BOARD_Y, BOARD_Z, COMPANIES, headX, LINE_X0, LINE_X1, LINE_Z, xOfYear, YEAR0, YEAR1 } from './timelineLayout'
 import { drawLines, SANS, useCanvasTexture, useImage, wrapRuns } from './textCanvas'
 import { useOpenRequest } from './useOpenRequest'
 import { useScanClip } from './useScanClip'
@@ -25,7 +24,6 @@ type Company = Resume['experience'][number]
 const LOGOS: Record<string, string> = {
   homee: homeeLogo,
   htc: htcLogo,
-  vive: viveLogo,
   xrspace: xrspaceLogo,
   // Freelance work goes under the site's own mark.
   freelance: `${import.meta.env.BASE_URL}favicon.svg`,
@@ -34,7 +32,7 @@ const LOGOS: Record<string, string> = {
 const TILE_LOGOS = new Set(['freelance'])
 
 // Floor decal covering the line, its year ticks and the connectors up to the boards.
-const DECAL = { x0: -LINE_X - 0.1, x1: LINE_X + 0.1, z0: -0.2, z1: 0.9, px: 4096 }
+const DECAL = { x0: LINE_X0 - 0.1, x1: LINE_X1 + 0.1, z0: -0.2, z1: 0.9, px: 4096 }
 const DECAL_PY = Math.round((DECAL.px * (DECAL.z1 - DECAL.z0)) / (DECAL.x1 - DECAL.x0))
 const decalX = (x: number) => ((x - DECAL.x0) / (DECAL.x1 - DECAL.x0)) * DECAL.px
 const decalY = (z: number) => ((z - DECAL.z0) / (DECAL.z1 - DECAL.z0)) * DECAL_PY
@@ -112,11 +110,11 @@ function TimelineFloor({ boards, walk }: { boards: BoardSpec[]; walk: () => numb
     DECAL_PY,
     (ctx) => {
       const lineY = decalY(LINE_Z)
-      const grad = ctx.createLinearGradient(decalX(-LINE_X), 0, decalX(LINE_X), 0)
+      const grad = ctx.createLinearGradient(decalX(LINE_X0), 0, decalX(LINE_X1), 0)
       grad.addColorStop(0, '#2eb8f2')
       grad.addColorStop(1, '#944cfa')
       ctx.fillStyle = grad
-      ctx.fillRect(decalX(-LINE_X), lineY - 4, decalX(LINE_X) - decalX(-LINE_X), 8)
+      ctx.fillRect(decalX(LINE_X0), lineY - 4, decalX(LINE_X1) - decalX(LINE_X0), 8)
 
       ctx.textAlign = 'center'
       ctx.textBaseline = 'top'
