@@ -40,7 +40,8 @@
   },
   "hobbies": {
     "android": { "name": "Android robot", "text": "From system apps on HTC phones to custom AOSP and the Android framework, Android has been with me for most of my career." },
-    "metaverse": { "name": "Metaverse", "text": "From Viveport and XRSPACE's virtual karaoke and concerts to 3DGS room scans, I've kept bringing people into 3D worlds." }
+    "metaverse": { "name": "Metaverse", "text": "From Viveport and XRSPACE's virtual karaoke and concerts to 3DGS room scans, I've kept bringing people into 3D worlds." },
+    "travel": { "name": "Travel", "text": "I've been to China, Singapore, Thailand, the US, Japan, Korea, Australia and New Zealand, and New Zealand is still my favorite." }
   },
   "experience": {
     "freelance": {

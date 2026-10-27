@@ -127,7 +127,7 @@ function ModeToggle({ free, compact }: { free: boolean; compact?: boolean }) {
 /** Everything DOM in immersive mode: the hero caption, the scroll track that drives the tour, and the HUD. */
 export function TourOverlay({ visible }: { visible: boolean }) {
   const r = useResume()
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const screens = useScreens()
   const position = tourPosition(screens)
   const current = Math.round(position)
@@ -195,10 +195,9 @@ export function TourOverlay({ visible }: { visible: boolean }) {
         // Transparent to the pointer so the books and frames in the canvas below can be hovered.
         className="pointer-events-none relative z-10 overflow-x-clip"
       >
-        {/* First screen belongs to the particles; only a caption and the intro sit at the bottom. */}
+        {/* First screen belongs to the particles; only a caption and the intro's first line sit at the bottom. The full intro hangs on the About frame. */}
         <section className="pointer-events-none flex h-svh flex-col items-center justify-end px-4 pb-8 text-center sm:pb-10">
-          {/* Chinese sentences run on without spaces. */}
-          <p className="max-w-xl text-sm text-foreground/80 sm:text-base">{r.intro.lines.join(i18n.resolvedLanguage === 'zh' ? '' : ' ')}</p>
+          <p className="max-w-xl text-sm text-foreground/80 sm:text-base">{r.intro.lines[0]}</p>
           <SocialLinks className={cn('mt-3 text-muted-foreground', visible && 'pointer-events-auto')} iconClassName="size-4" />
           <p className="mt-6 text-xs tracking-widest text-muted-foreground/80 sm:mt-8">
             {coarsePointer ? t('labels.hintTouch') : t('labels.hint')}

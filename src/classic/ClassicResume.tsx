@@ -1,5 +1,5 @@
 import { forwardRef } from 'react'
-import { ArrowUpRight, BookOpen, Bot, FileText, Glasses, Mail } from 'lucide-react'
+import { ArrowUpRight, BookOpen, Bot, FileText, Glasses, Globe, Mail } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -32,6 +32,8 @@ function ExternalLink({ href, children }: { href?: string; children: ReactNode }
 }
 
 /** The calm, readable resume (printing uses PrintResume). `heroRef` marks the card the 3D transition peels off. */
+const HOBBY_ICONS = { android: Bot, metaverse: Glasses, travel: Globe }
+
 export const ClassicResume = forwardRef<HTMLDivElement>(function ClassicResume(_props, heroRef) {
   const r = useResume()
   const { t } = useTranslation()
@@ -124,7 +126,7 @@ export const ClassicResume = forwardRef<HTMLDivElement>(function ClassicResume(_
         <Section id="hobbies" title={t('labels.hobbies')}>
           <div className="grid gap-4 sm:grid-cols-2">
             {r.hobbies.map((h) => {
-              const Icon = h.id === 'android' ? Bot : Glasses
+              const Icon = HOBBY_ICONS[h.id]
               return (
                 <Card key={h.id} className="flex-row items-start gap-4 px-5 py-4">
                   <Icon className="mt-0.5 size-6 shrink-0 text-primary" />

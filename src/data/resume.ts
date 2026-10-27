@@ -128,4 +128,4 @@ export const books: { id: string; reading?: boolean }[] = [
 export const nowUpdated = '2026-10'
 
 /** Things outside work that stand for most of my career: one prop each in the room. */
-export const hobbies = ['android', 'metaverse'] as const
+export const hobbies = ['android', 'metaverse', 'travel'] as const

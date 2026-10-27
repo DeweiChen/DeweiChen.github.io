@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type RefObject } from 'react'
+import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Color, MeshBasicMaterial } from 'three'
 import { useResume, type Resume } from '@/i18n/useResume'
@@ -19,9 +19,11 @@ const PX = 1024
 const PY = Math.round((PX * CERTS.size[1]) / CERTS.size[0])
 // Soft warm amber for the lampshade, gently glowing without overpowering bloom.
 const WARM = new Color('#f0b86a').multiplyScalar(1.3)
+/** How fast (per second) the corner lights up and the certificates scan in, so a quick scroll still fades rather than pops. */
+const FADE_RATE = 1.2
 
 /** A diploma: dark paper with a gold border, degree in the middle, the note in small print. */
-function Certificate({ degree, y, presence }: { degree: Degree; y: number; presence: () => number }) {
+function Certificate({ degree, y, lit }: { degree: Degree; y: number; lit: () => number }) {
   const map = useCanvasTexture(
     PX,
     PY,
@@ -87,9 +89,9 @@ function Certificate({ degree, y, presence }: { degree: Degree; y: number; prese
       height={CERTS.size[1]}
       position={[CERTS.x - 0.022, y, CERTS.z]}
       rotation={[0, -Math.PI / 2, 0]}
-      reveal={() => shownWhenFree(Math.min(1, presence() * 1.4))}
+      reveal={() => shownWhenFree(Math.min(1, lit() * 1.4))}
       // Lit by the lamp once it is on.
-      glow={() => presence() * 0.18}
+      glow={() => lit() * 0.18}
       onClick={(e) => {
         e.stopPropagation()
         goToStation(INDEX)
@@ -101,11 +103,17 @@ function Certificate({ degree, y, presence }: { degree: Degree; y: number; prese
 /** Education: two framed certificates beside the floor lamp, which switches on as you arrive. */
 export function Education({ progress }: { progress: RefObject<ScrollProgress> }) {
   const { education } = useResume()
-  const presence = () => stationPresence(progress.current.screens, INDEX)
+  // Follows the station presence over time instead of tracking it directly.
+  const fade = useRef(0)
+  const lit = () => fade.current
   const bulb = useMemo(() => new MeshBasicMaterial({ color: WARM, transparent: true, opacity: 0, toneMapped: false }), [])
   useEffect(() => () => bulb.dispose(), [bulb])
-  useFrame(() => {
-    bulb.opacity = presence() * 0.85
+  useFrame(({ invalidate }, dt) => {
+    const target = stationPresence(progress.current.screens, INDEX)
+    const step = Math.min(dt, 0.05) * FADE_RATE
+    fade.current = target > fade.current ? Math.min(target, fade.current + step) : Math.max(target, fade.current - step)
+    if (fade.current !== target) invalidate()
+    bulb.opacity = fade.current * 0.85
   })
 
   return (
@@ -116,7 +124,7 @@ export function Education({ progress }: { progress: RefObject<ScrollProgress> })
         color={[255, 175, 50]}
         edgeColor={[255, 50, 0]}
         peak={0.28}
-        strength={presence}
+        strength={lit}
         center={[0.4, 0.48]}
         stretch={1.2}
         size={[2.6, 2.4]}
@@ -128,7 +136,7 @@ export function Education({ progress }: { progress: RefObject<ScrollProgress> })
         <boxGeometry args={[LAMP.shade + 0.006, 0.344, LAMP.shade + 0.006]} />
       </mesh>
       {education.slice(0, CERTS.ys.length).map((d, i) => (
-        <Certificate key={d.id} degree={d} y={CERTS.ys[i]} presence={presence} />
+        <Certificate key={d.id} degree={d} y={CERTS.ys[i]} lit={lit} />
       ))}
     </>
   )

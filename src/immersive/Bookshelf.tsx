@@ -16,6 +16,11 @@ const INDEX = STATIONS.findIndex((s) => s.id === 'bookshelf')
 const ZC = (SHELF.z0 + SHELF.z1) / 2
 /** Bay centres: left bay (lower z, screen-left from the room) and right bay. */
 const BAY_Z = [(SHELF.z0 + ZC) / 2, (ZC + SHELF.z1) / 2]
+/** Keepsakes fill the hobby row bay by bay, then the row below from the other side, staggered like a checkerboard. */
+const keepsakeSlot = (i: number) => {
+  const row = Math.floor(i / 2)
+  return { row: 2 - row, z: BAY_Z[(i + row) % 2] }
+}
 const floorOf = (row: number) => SHELF.boards[row] + SHELF.board / 2
 const ceilingOf = (row: number) => SHELF.boards[row + 1] - SHELF.board / 2
 // Turns a prop built facing +z to face into the room (-x).
@@ -309,12 +314,107 @@ function Headset({ clip }: { clip: Plane }) {
   )
 }
 
+// Places I have been, as [lat, lon]. The favourite gets the big warm pin.
+const VISITED: [number, number][] = [
+  [39.9, 116.4], // China
+  [1.35, 103.8], // Singapore
+  [13.75, 100.5], // Thailand
+  [39.0, -98.0], // United States
+  [35.7, 139.7], // Japan
+  [37.57, 126.98], // Korea
+  [-33.9, 151.2], // Australia
+]
+const FAVOURITE: [number, number] = [-42.0, 172.5] // New Zealand
+// Longitude turned to face the room, so the pins of Asia-Pacific are what you see.
+const FACE_LON = 135
+const DEG = Math.PI / 180
+
+/** A point on a sphere of radius r, matching three's equirectangular sphere UVs. */
+function onSphere([lat, lon]: [number, number], r: number): [number, number, number] {
+  const phi = (lon + 180) * DEG
+  const theta = (90 - lat) * DEG
+  return [-r * Math.cos(phi) * Math.sin(theta), r * Math.cos(theta), r * Math.sin(phi) * Math.sin(theta)]
+}
+
+/** A desk globe: a gridded sphere on a tilted axis, pinned where I have travelled. Faces +z; its base is at y = 0. */
+function Globe({ clip }: { clip: Plane }) {
+  const r = 0.14
+  const map = useCanvasTexture(
+    1024,
+    512,
+    (ctx) => {
+      ctx.fillStyle = '#16305c'
+      ctx.fillRect(0, 0, 1024, 512)
+      ctx.strokeStyle = 'rgba(127, 216, 245, 0.45)'
+      ctx.lineWidth = 2
+      for (let lon = 0; lon < 360; lon += 30) {
+        const x = (lon / 360) * 1024
+        ctx.beginPath()
+        ctx.moveTo(x, 0)
+        ctx.lineTo(x, 512)
+        ctx.stroke()
+      }
+      for (let lat = -60; lat <= 60; lat += 30) {
+        const y = ((90 - lat) / 180) * 512
+        ctx.lineWidth = lat === 0 ? 4 : 2
+        ctx.beginPath()
+        ctx.moveTo(0, y)
+        ctx.lineTo(1024, y)
+        ctx.stroke()
+      }
+    },
+    [],
+  )
+  const metal = <meshStandardMaterial color="#8a8fb0" roughness={0.35} metalness={0.7} clippingPlanes={[clip]} />
+  const centre = r + 0.05
+  return (
+    <>
+      <mesh position={[0, 0.008, 0]}>
+        <cylinderGeometry args={[0.07, 0.08, 0.016, 32]} />
+        {metal}
+      </mesh>
+      <mesh position={[0, 0.03, 0]}>
+        <cylinderGeometry args={[0.008, 0.008, 0.04, 8]} />
+        {metal}
+      </mesh>
+      <group position={[0, centre, 0]} rotation={[0, 0, -23.4 * DEG]}>
+        <mesh rotation={[0, 0, Math.PI / 2]}>
+          <torusGeometry args={[r + 0.014, 0.005, 8, 48, Math.PI]} />
+          {metal}
+        </mesh>
+        <group rotation={[0, -(FACE_LON + 90) * DEG, 0]}>
+          <mesh>
+            <sphereGeometry args={[r, 48, 24]} />
+            <meshStandardMaterial map={map} roughness={0.45} metalness={0.1} clippingPlanes={[clip]} />
+          </mesh>
+          {VISITED.map((p) => (
+            <mesh key={p.join()} position={onSphere(p, r)}>
+              <sphereGeometry args={[0.006, 12, 8]} />
+              <meshBasicMaterial color={CYAN} toneMapped={false} clippingPlanes={[clip]} />
+            </mesh>
+          ))}
+          <mesh position={onSphere(FAVOURITE, r)}>
+            <sphereGeometry args={[0.011, 16, 10]} />
+            <meshBasicMaterial color="#ffb347" toneMapped={false} clippingPlanes={[clip]} />
+          </mesh>
+        </group>
+      </group>
+    </>
+  )
+}
+
+const KEEPSAKES = { android: Robot, metaverse: Headset, travel: Globe }
+/** Keepsakes are built at desk size; this scales them up to fill their bay. */
+const KEEPSAKE_SCALE = 1.25
+/** How close (floor distance) a roaming camera has to be for the keepsakes to start swaying; on the tour, being at the shelf's stop is enough. */
+const SWAY_NEAR = 4.5
+
 /** One thing from outside work on a shelf: it turns towards you on hover, and opens its note on click. */
 function Keepsake({
   z,
   row,
   height,
-  active,
+  atShelf,
   onSelect,
   groupRef,
   children,
@@ -322,7 +422,7 @@ function Keepsake({
   z: number
   row: number
   height: number
-  active: () => boolean
+  atShelf: () => boolean
   onSelect: () => void
   groupRef: (g: Group | null) => void
   children: ReactNode
@@ -332,13 +432,15 @@ function Keepsake({
   const spin = useRef<Group>(null)
   usePointerCursor(hovered)
 
-  useFrame(({ clock, invalidate }, dt) => {
+  useFrame(({ camera, clock, invalidate }, dt) => {
     const moving = ease(lift, hovered ? 1 : 0, dt, 10)
+    // The camera backs off to fit the shelf, so at its stop it can stand beyond SWAY_NEAR.
+    const near = atShelf() || Math.hypot(camera.position.x - SHELF.x, camera.position.z - z) < SWAY_NEAR
     const g = spin.current!
     g.position.y = lift.current * 0.04
-    // A slow idle sway while you stand at the shelf, a turn to face you when hovered.
+    // A slow idle sway while you are near the shelf, a turn to face you when hovered.
     g.rotation.y = Math.sin(clock.elapsedTime * 0.6) * 0.35 * (1 - lift.current) + lift.current * 0.25
-    if (moving || active()) invalidate()
+    if (moving || near) invalidate()
   })
 
   return (
@@ -355,15 +457,15 @@ function Keepsake({
           onSelect()
         }}
       >
-        {children}
+        <group scale={KEEPSAKE_SCALE}>{children}</group>
       </group>
-      <group ref={groupRef} position={[0, height / 2, 0.1]} />
+      <group ref={groupRef} position={[0, (height * KEEPSAKE_SCALE) / 2, 0.1]} />
     </group>
   )
 }
 
 interface Note {
-  kicker: string
+  kicker?: string
   title: string
   text: string
 }
@@ -371,9 +473,11 @@ interface Note {
 function paintNote(ctx: CanvasRenderingContext2D, note: Note, { px, css, pad, top }: PanelLayout) {
   const max = px - pad * 2
   ctx.textBaseline = 'top'
-  ctx.fillStyle = CYAN
-  ctx.font = `600 ${13 * css}px ${SANS}`
-  ctx.fillText(note.kicker.toUpperCase(), pad, pad)
+  if (note.kicker) {
+    ctx.fillStyle = CYAN
+    ctx.font = `600 ${13 * css}px ${SANS}`
+    ctx.fillText(note.kicker.toUpperCase(), pad, pad)
+  }
   ctx.fillStyle = TEXT
   ctx.font = `700 ${26 * css}px ${SANS}`
   ctx.fillText(note.title, pad, pad + 24 * css, max)
@@ -384,7 +488,7 @@ function paintNote(ctx: CanvasRenderingContext2D, note: Note, { px, css, pad, to
 
 /**
  * The bookshelf: books I have read spine out on the top shelf, the one I am reading
- * face out beside them, and below, the two things that stand for most of my career.
+ * face out beside them, and below, the things that stand for most of my life outside work.
  * Hovering pulls a book or turns a keepsake; clicking the cover or a keepsake opens its note.
  */
 export function Bookshelf({ progress }: { progress: RefObject<ScrollProgress> }) {
@@ -402,7 +506,7 @@ export function Bookshelf({ progress }: { progress: RefObject<ScrollProgress> })
   // Hobbies first, so their index matches the keyboard outline's open requests; the Now note last.
   const notes = useMemo<Note[]>(
     () => [
-      ...hobbies.map((h) => ({ kicker: t('labels.hobbies'), title: h.name, text: h.text })),
+      ...hobbies.map((h) => ({ title: h.name, text: h.text })),
       ...(reading ? [{ kicker: `${t('labels.reading')} · ${now.updated}`, title: reading.title, text: now.text }] : []),
     ],
     [hobbies, reading, now, t],
@@ -458,7 +562,10 @@ export function Bookshelf({ progress }: { progress: RefObject<ScrollProgress> })
   const plaques = [
     { label: t('labels.booksRead'), position: [FRONT - 0.004, floorOf(3) - 0.022, BAY_Z[0]] },
     { label: t('labels.reading'), position: [FRONT - 0.004, floorOf(3) - 0.022, BAY_Z[1]] },
-    ...hobbies.map((h, i) => ({ label: h.name, position: [FRONT - 0.004, floorOf(2) - 0.022, BAY_Z[i]] })),
+    ...hobbies.map((h, i) => {
+      const { row, z } = keepsakeSlot(i)
+      return { label: h.name, position: [FRONT - 0.004, floorOf(row) - 0.022, z] }
+    }),
   ] as { label: string; position: [number, number, number] }[]
   const source = (i: number) => (g: Group | null) => {
     sources.current[i] = g
@@ -472,19 +579,21 @@ export function Bookshelf({ progress }: { progress: RefObject<ScrollProgress> })
       {reading && (
         <Cover title={reading.title} clip={clip} visible={visible} onSelect={() => open(hobbies.length)} groupRef={source(hobbies.length)} />
       )}
-      {hobbies.map((h, i) => (
-        <Keepsake
-          key={h.id}
-          z={BAY_Z[i]}
-          row={2}
-          height={0.36}
-          active={() => presence() > 0}
-          onSelect={() => open(i)}
-          groupRef={source(i)}
-        >
-          {h.id === 'android' ? <Robot clip={clip} /> : <Headset clip={clip} />}
-        </Keepsake>
-      ))}
+      {hobbies.map((h, i) => {
+        const Prop = KEEPSAKES[h.id]
+        return (
+          <Keepsake
+            key={h.id}
+            {...keepsakeSlot(i)}
+            height={0.36}
+            atShelf={() => presence() > 0}
+            onSelect={() => open(i)}
+            groupRef={source(i)}
+          >
+            <Prop clip={clip} />
+          </Keepsake>
+        )
+      })}
       {plaques.map((p) => (
         <Plaque key={p.label} label={p.label} position={p.position} visible={visible} />
       ))}
@@ -493,7 +602,7 @@ export function Bookshelf({ progress }: { progress: RefObject<ScrollProgress> })
         paint={paintNote}
         deps={[]}
         source={() => (last === null ? null : sources.current[last])}
-        sourceHeight={0.36}
+        sourceHeight={0.36 * KEEPSAKE_SCALE}
         fill={{ wide: 0.3, tall: 0.36 }}
         onClose={() => setSelected(null)}
       />

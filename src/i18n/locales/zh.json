@@ -39,8 +39,9 @@
     "artOfSpending": "花錢的藝術"
   },
   "hobbies": {
-    "android": { "name": "Android 機器人", "text": "從 HTC 手機的系統 App、客製 AOSP 到 Android Framework，Android 陪我走過大半職涯。" },
-    "metaverse": { "name": "元宇宙", "text": "從 Viveport、XRSPACE 的虛擬 KTV 與演唱會，到 3DGS 空間掃描，我一直在把人帶進 3D 世界。" }
+    "android": { "name": "Android robot", "text": "從 HTC 手機的系統 App、客製 AOSP 到 Android Framework，Android 陪我走過大半職涯。" },
+    "metaverse": { "name": "元宇宙", "text": "從 Viveport、XRSPACE 的虛擬 KTV 與演唱會，到 3DGS 空間掃描，我一直在把人帶進 3D 世界。" },
+    "travel": { "name": "旅行", "text": "走過中國、新加坡、泰國、美國、日本、韓國、澳洲與紐西蘭，目前最喜歡的旅遊國家還是紐西蘭。" }
   },
   "experience": {
     "freelance": {

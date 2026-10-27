@@ -30,8 +30,8 @@ export const STATIONS: Station[] = [
   { id: 'hero', pos: [0, 0, 6], target: [0, 0, -4], span: 2, fit: [0, 0], map: [0, FRONT_Z + 0.5] },
   // Picture frame above the sofa.
   { id: 'about', pos: [-1.25, 0.62, -1.5], target: [-1.4, 0.72, -4], span: 1.2, fit: [2.1, 1.45], map: [-1.4, -3.6] },
-  // Bookshelf on the right wall.
-  { id: 'bookshelf', pos: [-0.2, 0.25, -1.1], target: [2.7, 0.2, -1.6], span: 1.2, fit: [2.2, 2.5], map: [2.9, -1.6] },
+  // Bookshelf on the right wall, framed low enough to take in the bottom keepsake row.
+  { id: 'bookshelf', pos: [-0.2, 0.1, -1.1], target: [2.7, 0.0, -1.6], span: 1.2, fit: [2.2, 2.7], map: [2.9, -1.6] },
   // Experience: a walk along the floor timeline, one stop in front of each company's board.
   ...COMPANIES.map(
     (c, k): Station => ({
