@@ -1,6 +1,7 @@
 import { forwardRef } from 'react'
-import { ArrowUpRight, Mail, MapPin } from 'lucide-react'
+import { ArrowUpRight, BookOpen, Bot, FileText, Glasses, Mail } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { SocialLinks } from '@/components/SocialLinks'
@@ -46,84 +47,45 @@ export const ClassicResume = forwardRef<HTMLDivElement>(function ClassicResume(_
         <div className="relative">
           <p className="text-sm text-muted-foreground">{r.altName}</p>
           <h1 className="mt-1 text-4xl font-bold tracking-tight sm:text-5xl">{r.name}</h1>
-          <p className="mt-3 bg-gradient-to-r from-brand-from to-brand-to bg-clip-text text-lg font-medium text-transparent">
-            {r.headline}
-          </p>
+          <div className="mt-4 max-w-2xl space-y-1.5 text-[15px] leading-relaxed">
+            {r.intro.lines.map((line) => <p key={line}>{line}</p>)}
+          </div>
           <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5"><MapPin className="size-4" />{r.location}</span>
             <a href={`mailto:${r.email}`} className="inline-flex items-center gap-1.5 hover:text-foreground">
               <Mail className="size-4" />{r.email}
             </a>
             <SocialLinks className="gap-2.5" iconClassName="size-4" />
           </div>
-          <dl className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {r.stats.map((s) => (
-              <div key={s.label} className="rounded-lg border bg-background/40 px-4 py-3">
-                <dt className="sr-only">{s.label}</dt>
-                <dd className="text-2xl font-semibold tabular-nums">{s.value}</dd>
-                <dd className="text-xs text-muted-foreground">{s.label}</dd>
-              </div>
-            ))}
-          </dl>
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
+            <p className="flex items-start gap-2.5 rounded-lg border bg-background/40 px-4 py-3 text-sm">
+              <BookOpen className="mt-0.5 size-4 shrink-0 text-primary" />
+              <span>
+                <span className="font-medium">{t('labels.now')}</span>
+                <span className="text-muted-foreground"> · {r.now.updated}</span>
+                <br />
+                {r.now.text}
+              </span>
+            </p>
+            <Button variant="outline" size="sm" onClick={() => window.print()}>
+              <FileText />{t('labels.fullResume')}
+            </Button>
+          </div>
         </div>
       </Card>
 
       <div className="mt-14 space-y-14">
-        <Section id="about" title={t('labels.about')}>
-          <ul className="space-y-3 text-[15px] leading-relaxed">
-            {r.about.map((line) => (
-              <li key={line.lead} className="flex gap-3">
-                <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-primary" />
-                <span><strong className="font-semibold">{line.lead}</strong>{line.text}</span>
-              </li>
-            ))}
-          </ul>
-        </Section>
-
-        <Section id="skills" title={t('labels.skills')}>
-          <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
-            {r.skills.map((s) => (
-              <div key={s.group}>
-                <h3 className="mb-2 text-sm font-medium">{s.group}</h3>
-                <div className="flex flex-wrap gap-1.5">
-                  {s.items.map((item) => (
-                    <Badge key={item} variant="secondary" className="font-normal">{item}</Badge>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Section>
-
         <Section id="experience" title={t('labels.experience')}>
-          <div className="space-y-10">
+          <div className="space-y-8">
             {r.experience.map((company) => (
               <article key={company.name} className="break-inside-avoid-page">
                 <h3 className="text-xl font-semibold">{company.name}</h3>
-                <ol className="mt-4 space-y-6 border-l pl-5">
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{company.summary}</p>
+                <ol className="mt-3 space-y-1.5 border-l pl-5">
                   {company.roles.map((role) => (
-                    <li key={role.title + role.period} className="relative">
+                    <li key={role.title + role.period} className="relative flex flex-wrap items-baseline justify-between gap-x-4">
                       <span className="absolute top-1.5 -left-[25px] size-2.5 rounded-full border-2 border-background bg-gradient-to-br from-brand-from to-brand-to" />
-                      <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-                        <h4 className="font-medium">{role.title}</h4>
-                        <span className="text-sm text-muted-foreground tabular-nums">{role.period}</span>
-                      </div>
-                      <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-muted-foreground">
-                        {role.bullets.map((b) => <li key={b}>{b}</li>)}
-                      </ul>
-                      {role.groups?.map((g) => (
-                        <div key={g.title} className="mt-3">
-                          <p className="text-xs font-medium tracking-wide text-foreground/80 uppercase">{g.title}</p>
-                          <ul className="mt-1.5 space-y-1 text-sm text-muted-foreground">
-                            {g.items.map((it) => (
-                              <li key={it.name}>
-                                <span className="font-medium text-foreground"><ExternalLink href={it.link}>{it.name}</ExternalLink></span>
-                                {it.detail && <> — {it.detail}</>}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
+                      <h4 className="text-[15px] font-medium">{role.title}</h4>
+                      <span className="text-sm text-muted-foreground tabular-nums">{role.period}</span>
                     </li>
                   ))}
                 </ol>
@@ -146,6 +108,36 @@ export const ClassicResume = forwardRef<HTMLDivElement>(function ClassicResume(_
           </div>
         </Section>
 
+        <Section id="bookshelf" title={t('labels.bookshelf')}>
+          <ul className="flex flex-wrap gap-2">
+            {r.books.map((b) => (
+              <li key={b.id}>
+                <Badge variant={b.reading ? 'default' : 'secondary'} className="px-3 py-1 text-sm font-normal">
+                  {b.title}
+                  {b.reading && <span className="opacity-80"> · {t('labels.reading')}</span>}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+        </Section>
+
+        <Section id="hobbies" title={t('labels.hobbies')}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {r.hobbies.map((h) => {
+              const Icon = h.id === 'android' ? Bot : Glasses
+              return (
+                <Card key={h.id} className="flex-row items-start gap-4 px-5 py-4">
+                  <Icon className="mt-0.5 size-6 shrink-0 text-primary" />
+                  <div>
+                    <h3 className="font-medium">{h.name}</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{h.text}</p>
+                  </div>
+                </Card>
+              )
+            })}
+          </div>
+        </Section>
+
         <Section id="education" title={t('labels.education')}>
           <div className="space-y-4">
             {r.education.map((e) => (
@@ -160,6 +152,7 @@ export const ClassicResume = forwardRef<HTMLDivElement>(function ClassicResume(_
           </div>
         </Section>
 
+        <p className="text-[15px]">{t('contactPitch')}</p>
         <Separator />
         <footer className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
           <span>© {new Date().getFullYear()} {r.name}</span>

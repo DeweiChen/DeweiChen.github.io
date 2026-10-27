@@ -89,7 +89,7 @@ function FloorPlan({ position, current }: { position: number; current: number })
 /** Everything DOM in immersive mode: the hero caption, the scroll track that drives the tour, and the HUD. */
 export function TourOverlay({ visible }: { visible: boolean }) {
   const r = useResume()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const screens = useScreens()
   const position = tourPosition(screens)
   const current = Math.round(position)
@@ -154,20 +154,11 @@ export function TourOverlay({ visible }: { visible: boolean }) {
         // Transparent to the pointer so the books and frames in the canvas below can be hovered.
         className="pointer-events-none relative z-10 overflow-x-clip"
       >
-        {/* First screen belongs to the particles; only a caption and the stats sit at the bottom. */}
+        {/* First screen belongs to the particles; only a caption and the intro sit at the bottom. */}
         <section className="pointer-events-none flex h-svh flex-col items-center justify-end px-4 pb-8 text-center sm:pb-10">
-          <p className="text-sm text-foreground/90 sm:text-lg">{r.headline}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{r.location}</p>
+          {/* Chinese sentences run on without spaces. */}
+          <p className="max-w-xl text-sm text-foreground/80 sm:text-base">{r.intro.lines.join(i18n.resolvedLanguage === 'zh' ? '' : ' ')}</p>
           <SocialLinks className={cn('mt-3 text-muted-foreground', visible && 'pointer-events-auto')} iconClassName="size-4" />
-          <dl className="mt-5 grid grid-cols-4 gap-x-4 sm:mt-6 sm:flex sm:gap-x-8">
-            {r.stats.map((s) => (
-              <div key={s.label}>
-                <dt className="sr-only">{s.label}</dt>
-                <dd className="text-xl font-semibold tabular-nums sm:text-2xl">{s.value}</dd>
-                <dd className="text-[11px] leading-tight text-muted-foreground sm:text-xs">{s.label}</dd>
-              </div>
-            ))}
-          </dl>
           <p className="mt-6 text-xs tracking-widest text-muted-foreground/80 sm:mt-8">
             {coarsePointer ? t('labels.hintTouch') : t('labels.hint')}
           </p>

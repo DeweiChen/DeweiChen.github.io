@@ -40,7 +40,7 @@ function usePointerCursor(active: boolean) {
   }, [active])
 }
 
-/** "Get in touch", the headline and the email address, on a plate on the wall. */
+/** "Get in touch", what to write about and the email address, on a plate on the wall. */
 function Plate({ presence }: { presence: () => number }) {
   const { t } = useTranslation()
   const r = useResume()
@@ -61,7 +61,7 @@ function Plate({ presence }: { presence: () => number }) {
       ctx.fillStyle = MUTED
       ctx.font = `400 ${38 * k}px ${SANS}`
       let y = 76 + 74 * k
-      for (const line of wrapRuns(ctx, [{ text: r.headline, font: ctx.font, color: MUTED }], px - 160)) {
+      for (const line of wrapRuns(ctx, [{ text: t('contactPitch'), font: ctx.font, color: MUTED }], px - 160)) {
         ctx.fillText(line.map((p) => p.text).join(''), 80, y)
         y += 52 * k
       }
@@ -71,7 +71,7 @@ function Plate({ presence }: { presence: () => number }) {
         ctx.font = `700 ${size}px ${SANS}`
         if (ctx.measureText(r.email).width <= px - 160) break
       }
-      ctx.fillText(r.email, 80, portrait ? y + 30 : 250)
+      ctx.fillText(r.email, 80, portrait ? y + 30 : Math.max(250, y + 48))
     },
     [r, t, portrait],
   )

@@ -14,7 +14,7 @@ import { CYAN, MUTED, panelBackground, TEXT, type PanelLayout } from './panel'
 import { Reader } from './Reader'
 import { TextPlane } from './TextPlane'
 import { BOARD_H, BOARD_W, BOARD_Y, BOARD_Z, COMPANIES, headX, LINE_X, LINE_Z, xOfYear, YEAR0, YEAR1 } from './timelineLayout'
-import { drawLines, SANS, useCanvasTexture, useImage, wrapRuns, type Run } from './textCanvas'
+import { drawLines, SANS, useCanvasTexture, useImage, wrapRuns } from './textCanvas'
 import { useOpenRequest } from './useOpenRequest'
 import { useScanClip } from './useScanClip'
 import type { ScrollProgress } from './useScrollProgress'
@@ -293,7 +293,7 @@ function Board({
   )
 }
 
-/** Full role history of one company, laid out in the reader. Returns content height. */
+/** One company in the reader: what I did there, then its roles. Returns content height. */
 function paintDetail(
   ctx: CanvasRenderingContext2D,
   company: Company,
@@ -315,28 +315,14 @@ function paintDetail(
   const minSize = Math.max(16, Math.round((wide ? 16 : 14) * css))
   for (let size = Math.round((wide ? 20 : 16) * css); size >= minSize; size -= 2) {
     const lineHeight = size * 1.8
-    const blocks = company.roles.map((role) => ({
-      role,
-      bullets: role.bullets.map((b) => wrapRuns(ctx, [{ text: `•  ${b}`, font: `400 ${size}px ${SANS}`, color: TEXT }], maxWidth)),
-      groups: (role.groups ?? []).map((g) =>
-        wrapRuns(
-          ctx,
-          [
-            { text: `${g.title}  `, font: `600 ${size * 0.9}px ${SANS}`, color: CYAN },
-            { text: g.items.map((i) => i.name).join('  ·  '), font: `400 ${size * 0.9}px ${SANS}`, color: MUTED },
-          ] satisfies Run[],
-          maxWidth,
-        ),
-      ),
-    }))
-    const roleGap = size * 1.1
+    const summary = wrapRuns(ctx, [{ text: company.summary, font: `400 ${size * 1.1}px ${SANS}`, color: TEXT }], maxWidth)
+    const summaryHeight = summary.length * lineHeight * 1.1 + size * 1.6
+    const roleGap = size * 0.6
     // Narrow panels put the period under the title instead of beside it.
     const stacked = !wide
     const header = stacked ? size * 3.1 : size * 1.9
-    const height = blocks.reduce(
-      (h, b) => h + header + [...b.bullets, ...b.groups].reduce((n, l) => n + l.length, 0) * lineHeight + roleGap,
-      -roleGap,
-    )
+    const height = summaryHeight + company.roles.length * (header + roleGap) - roleGap
+
     if (height > bottom - top && size > minSize) continue
 
     totalHeight = height
@@ -347,26 +333,24 @@ function paintDetail(
     ctx.rect(0, top, px, bottom - top)
     ctx.clip()
 
-    let y = top - scrollY
-    for (const b of blocks) {
+    let y = drawLines(ctx, summary, pad, top - scrollY, lineHeight * 1.1) + size * 1.6
+    for (const role of company.roles) {
       ctx.textBaseline = 'top'
       ctx.font = `500 ${size * 0.95}px ${SANS}`
-      const periodWidth = stacked ? 0 : ctx.measureText(b.role.period).width + size
+      const periodWidth = stacked ? 0 : ctx.measureText(role.period).width + size
       ctx.font = `650 ${size * 1.15}px ${SANS}`
       ctx.fillStyle = CYAN
       // Long titles are narrowed rather than run off the panel or into the period.
-      ctx.fillText(b.role.title, pad, y, maxWidth - periodWidth)
+      ctx.fillText(role.title, pad, y, maxWidth - periodWidth)
       ctx.font = `500 ${size * 0.95}px ${SANS}`
       ctx.fillStyle = MUTED
-      if (stacked) ctx.fillText(b.role.period, pad, y + size * 1.55)
+      if (stacked) ctx.fillText(role.period, pad, y + size * 1.55)
       else {
         ctx.textAlign = 'right'
-        ctx.fillText(b.role.period, px - pad, y + size * 0.15)
+        ctx.fillText(role.period, px - pad, y + size * 0.15)
         ctx.textAlign = 'left'
       }
-      y += header
-      for (const lines of [...b.bullets, ...b.groups]) y = drawLines(ctx, lines, pad, y, lineHeight)
-      y += roleGap
+      y += header + roleGap
     }
     ctx.restore()
     break

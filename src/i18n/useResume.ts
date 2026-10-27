@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { education, experience, profile, sideProjects, skills, stats, type Lang, type Period } from '@/data/resume'
+import { books, education, experience, hobbies, nowUpdated, profile, sideProjects, skills, stats, type Lang, type Period } from '@/data/resume'
 import type en from './locales/en.json'
 
 type Messages = typeof en
@@ -30,17 +30,22 @@ export function useResume() {
   return useMemo(() => {
     const m = i18n.getResourceBundle(lang, 'translation') as Messages
     const period = (p: Period) => formatPeriod(p, lang, m.format.present)
-    const companies = m.experience as Record<string, { name: string; roles: Record<string, RoleMessages> }>
+    const companies = m.experience as Record<string, { name: string; summary: string; roles: Record<string, RoleMessages> }>
 
     return {
       ...m.profile,
       ...profile,
       stats: stats.map((s) => ({ value: s.value, label: m.stats[s.id] })),
       about: m.about,
+      intro: m.intro,
+      now: { text: m.now.text, updated: formatDate(nowUpdated, lang) },
       skills: skills.map((id) => m.skills[id]),
+      books: books.map((b) => ({ id: b.id, title: m.books[b.id as keyof Messages['books']], reading: !!b.reading })),
+      hobbies: hobbies.map((id) => ({ ...m.hobbies[id], id })),
       experience: experience.map((c) => ({
         id: c.id,
         name: companies[c.id].name,
+        summary: companies[c.id].summary,
         roles: c.roles.map((r) => {
           const rm = companies[c.id].roles[r.id]
           return {

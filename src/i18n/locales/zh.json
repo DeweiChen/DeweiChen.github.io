@@ -3,6 +3,7 @@
     "name": "陳德維",
     "altName": "De-Wei Chen",
     "fullName": "陳德維 (De-Wei Chen)",
+    "nickname": "DW",
     "headline": "Product Team Lead · Full-Stack Engineer",
     "location": "台灣 台北"
   },
@@ -17,6 +18,11 @@
     { "lead": "績效頂尖：", "text": "進入 HTC 第二年，即在 70 人部門中績效排名第一。" },
     { "lead": "AI 驅動的問題解決者：", "text": "積極運用 AI 輔助工作流程，主導開發方向並解決複雜的工程挑戰。" }
   ],
+  "intro": {
+    "greeting": "嗨！",
+    "lines": ["我是 DW，一個喜歡自己動手把東西做出來的 maker。", "旅行時總拿著手機，把看到的世界拍下來。", "我想一直學下去，跨領域、多角度地思考。"]
+  },
+  "now": { "text": "最近在讀《花錢的藝術》，尋找金錢以外能帶來的快樂。", "updated": "更新於" },
   "skills": {
     "ai": { "group": "AI Agents", "items": ["Claude Code", "GitHub Copilot", "Antigravity", "Cursor"] },
     "mobile": { "group": "行動開發", "items": ["Android", "iOS", "Unity3D", "Flutter", "React Native"] },
@@ -25,21 +31,33 @@
     "architecture": { "group": "架構", "items": ["Clean Architecture", "領域驅動設計 (DDD)", "事件驅動系統"] },
     "leadership": { "group": "領導力", "items": ["工程管理", "跨職能團隊領導", "技術指導", "敏捷 / Scrum 交付", "雲端成本優化"] }
   },
+  "books": {
+    "leanStartup": "精實創業",
+    "peak": "刻意練習",
+    "atomicHabits": "原子習慣",
+    "weNeedToTalk": "同理心對話",
+    "artOfSpending": "花錢的藝術"
+  },
+  "hobbies": {
+    "android": { "name": "Android 機器人", "text": "從 HTC 手機的系統 App、客製 AOSP 到 Android Framework，Android 陪我走過大半職涯。" },
+    "metaverse": { "name": "元宇宙", "text": "從 Viveport、XRSPACE 的虛擬 KTV 與演唱會，到 3DGS 空間掃描，我一直在把人帶進 3D 世界。" }
+  },
   "experience": {
     "freelance": {
       "name": "獨立接案",
+      "summary": "以個人開發者身分接案，從需求、架構到交付一手包辦：行動 App、全端網頁、網頁渲染與 UI 自動化測試。",
       "roles": {
         "freelance": {
           "bullets": [
             "以個人開發者身分獨立完成多個客戶專案的端到端交付，涵蓋行動 App、全端網頁開發、網頁渲染，以及使用 Appium 的行動 UI 自動化測試（SDET）。",
-            "一人負責完整合作流程 — 需求釐清、時程估算、架構設計、實作到交接。",
-            "持續進修：研讀產品策略、技能養成與溝通相關書籍，包括《精實創業》、《刻意練習》、《原子習慣》與《We Need to Talk》。"
+            "一人負責完整合作流程 — 需求釐清、時程估算、架構設計、實作到交接。"
           ]
         }
       }
     },
     "homee": {
       "name": "Homee AI",
+      "summary": "帶領 9 人跨職能團隊打造旗艦產品，玩 3DGS、RoomPlan、Vision Pro 等空間運算技術，也把雲端成本砍掉 87%。",
       "roles": {
         "lead": {
           "bullets": [
@@ -69,6 +87,7 @@
     },
     "xrspace": {
       "name": "XRSPACE",
+      "summary": "打造 MANOVA VR 系統與 PartyOn 虛擬 KTV、演唱會，從 Android Framework 一路做到多人連線後端。",
       "roles": {
         "manager": {
           "bullets": [
@@ -119,6 +138,7 @@
     },
     "vive": {
       "name": "HTC Vive",
+      "summary": "在 Viveport 打造 VR 商店與 Cloud Portal，追求穩定 90 FPS 的 VR 體驗。",
       "roles": {
         "principal": {
           "bullets": [
@@ -141,6 +161,7 @@
     },
     "htc": {
       "name": "HTC",
+      "summary": "職涯起點：開發 HTC 手機的 Android 系統 App 與 Framework 元件。",
       "roles": {
         "engineer": {
           "bullets": [
@@ -174,7 +195,14 @@
       "note": "因學業表現優異提前畢業：5 年完成學士與碩士（3.5 + 1.5）。"
     }
   },
+  "contactPitch": "擅長全端與 App 開發，也熟悉 AI 輔助開發流程。有專案想委託，歡迎來信聊聊。",
   "labels": {
+    "bookshelf": "書櫃",
+    "booksRead": "讀過的書",
+    "reading": "正在讀",
+    "now": "最近",
+    "hobbies": "工作以外",
+    "fullResume": "完整履歷 / PDF",
     "about": "關於我",
     "skills": "技能",
     "experience": "工作經歷",

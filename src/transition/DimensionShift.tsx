@@ -15,13 +15,14 @@ import type { Mode } from '@/components/TopBar'
  */
 export type Phase = 'classic' | 'to3d' | 'immersive' | 'to2d'
 
+/** The room is the front page; `?mode=2d` asks for the classic page. */
 export function readModeFromUrl(): Mode {
-  return new URLSearchParams(location.search).get('mode') === '3d' ? 'immersive' : 'classic'
+  return new URLSearchParams(location.search).get('mode') === '2d' ? 'classic' : 'immersive'
 }
 
 function writeModeToUrl(mode: Mode) {
   const url = new URL(location.href)
-  if (mode === 'immersive') url.searchParams.set('mode', '3d')
+  if (mode === 'classic') url.searchParams.set('mode', '2d')
   else url.searchParams.delete('mode')
   history.replaceState(null, '', url)
 }

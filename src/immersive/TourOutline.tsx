@@ -56,35 +56,46 @@ export function TourOutline({ onExit }: { onExit?: () => void }) {
   return (
     <main aria-label={t('labels.skipTour')}>
       <h1 className="sr-only">
-        {r.fullName} · {r.headline}
+        {r.fullName}
       </h1>
-      <p className="sr-only">{r.location}</p>
 
       <section aria-labelledby="tour-about">
         <h2 id="tour-about" className="sr-only">
           {t('labels.about')}
         </h2>
-        {r.about.map((line) => (
-          <p key={line.lead} className="sr-only">
-            <strong>{line.lead}</strong>
-            {line.text}
+        <p className="sr-only">{r.intro.greeting}</p>
+        {r.intro.lines.map((line) => (
+          <p key={line} className="sr-only">
+            {line}
           </p>
         ))}
+        <p className="sr-only">
+          {t('labels.now')} ({r.now.updated}): {r.now.text}
+        </p>
       </section>
 
-      <section aria-labelledby="tour-skills">
-        <h2 id="tour-skills" className="sr-only">
-          {t('labels.skills')}
+      <section aria-labelledby="tour-bookshelf">
+        <h2 id="tour-bookshelf" className="sr-only">
+          {t('labels.bookshelf')}
         </h2>
-        {r.skills.map((g) => (
-          <div key={g.group} className="sr-only">
-            <h3>{g.group}</h3>
-            <ul>
-              {g.items.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </div>
+        <ul className="sr-only">
+          {r.books.map((b) => (
+            <li key={b.id}>
+              {b.title}
+              {b.reading && ` (${t('labels.reading')})`}
+            </li>
+          ))}
+        </ul>
+        <h3 className="sr-only">{t('labels.hobbies')}</h3>
+        {r.hobbies.map((h, i) => (
+          <article key={h.id}>
+            <p className="sr-only">
+              {h.name}: {h.text}
+            </p>
+            <TourButton station={firstOf('bookshelf')} onClick={() => open({ id: 'hobbies', index: i })}>
+              {t('labels.details')}: {h.name}
+            </TourButton>
+          </article>
         ))}
       </section>
 
@@ -98,23 +109,14 @@ export function TourOutline({ onExit }: { onExit?: () => void }) {
           return (
             <article key={c.id}>
               <h3 className="sr-only">{c.name}</h3>
-              {c.roles.map((role) => (
-                <div key={role.id} className="sr-only">
-                  <h4>
+              <p className="sr-only">{c.summary}</p>
+              <ul className="sr-only">
+                {c.roles.map((role) => (
+                  <li key={role.id}>
                     {role.title}, {role.period}
-                  </h4>
-                  <ul>
-                    {role.bullets.map((b) => (
-                      <li key={b}>{b}</li>
-                    ))}
-                  </ul>
-                  {role.groups?.map((g) => (
-                    <p key={g.id}>
-                      {g.title}: {g.items.map((it) => it.name).join(', ')}
-                    </p>
-                  ))}
-                </div>
-              ))}
+                  </li>
+                ))}
+              </ul>
               <TourButton station={EXPERIENCE.first + stop} onClick={() => open({ id: 'experience', index: stop })}>
                 {t('labels.details')}: {c.name}
               </TourButton>

@@ -28,7 +28,7 @@ interface SplatPortraitProps {
 const MORPH_SECONDS = 1.6
 const FONT = '"PingFang TC", "Noto Sans TC", "Microsoft JhengHei", "Heiti TC", sans-serif'
 
-/** Rasterises the name and returns `count` jittered sample points, normalised so the text is 1 unit tall. */
+/** Rasterises "DW" over the name and returns `count` jittered sample points, normalised so the text is 1 unit tall. */
 function samplePortrait(count: number) {
   const w = 1200
   const h = 640
@@ -39,11 +39,11 @@ function samplePortrait(count: number) {
   ctx.fillStyle = '#fff'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.font = `700 300px ${FONT}`
-  ctx.fillText('陳德維', w / 2, h * 0.4)
+  ctx.font = `800 380px ${FONT}`
+  ctx.fillText('DW', w / 2, h * 0.4)
   ctx.font = `500 84px ${FONT}`
-  ctx.letterSpacing = '24px'
-  ctx.fillText('DE-WEI CHEN', w / 2 + 12, h * 0.84)
+  ctx.letterSpacing = '20px'
+  ctx.fillText('DE-WEI CHEN', w / 2 + 10, h * 0.86)
 
   const data = ctx.getImageData(0, 0, w, h).data
   const filled: number[] = []

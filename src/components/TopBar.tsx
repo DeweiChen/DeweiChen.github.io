@@ -68,10 +68,6 @@ export function TopBar({ mode, onModeChange, immersiveAvailable, busy, onImmersi
             onValueChange={(v) => v && v !== mode && onModeChange(v as Mode)}
             aria-label={t('labels.layout')}
           >
-            <ToggleGroupItem value="classic" className="gap-1.5 px-2.5">
-              <FileText />
-              <span className="hidden sm:inline">{t('labels.classic')}</span>
-            </ToggleGroupItem>
             {immersiveAvailable ? (
               <ToggleGroupItem
                 value="immersive"
@@ -96,6 +92,10 @@ export function TopBar({ mode, onModeChange, immersiveAvailable, busy, onImmersi
                 <TooltipContent>{t('labels.webglUnavailable')}</TooltipContent>
               </Tooltip>
             )}
+            <ToggleGroupItem value="classic" className="gap-1.5 px-2.5">
+              <FileText />
+              <span className="hidden sm:inline">{t('labels.classic')}</span>
+            </ToggleGroupItem>
           </ToggleGroup>
         </div>
       </div>

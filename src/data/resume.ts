@@ -117,3 +117,18 @@ export const education: { id: string; degree: string; period: Period }[] = [
   { id: 'ms', degree: 'M.S. in Electrical Engineering', period: { start: '2014', end: '2015' } },
   { id: 'bs', degree: 'B.S. in Electrical Engineering', period: { start: '2011', end: '2014' } },
 ]
+
+/** Books read, shelf order. `reading` marks the one on the go, which the Now note is about. */
+export const books: { id: string; reading?: boolean }[] = [
+  { id: 'leanStartup' },
+  { id: 'peak' },
+  { id: 'atomicHabits' },
+  { id: 'weNeedToTalk' },
+  { id: 'artOfSpending', reading: true },
+]
+
+/** When the Now note was last rewritten, "YYYY-MM". */
+export const nowUpdated = '2026-10'
+
+/** Things outside work that stand for most of my career: one prop each in the room. */
+export const hobbies = ['android', 'metaverse'] as const

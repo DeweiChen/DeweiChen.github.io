@@ -5,7 +5,7 @@ import { BOARD_Z, COMPANIES } from './timelineLayout'
 type Vec3 = [number, number, number]
 
 export interface Station {
-  id: 'hero' | 'about' | 'skills' | 'experience' | 'sideProjects' | 'education' | 'contact'
+  id: 'hero' | 'about' | 'bookshelf' | 'experience' | 'sideProjects' | 'education' | 'contact'
   /** Where the camera stands and what it looks at, in room coordinates (see roomLayout). */
   pos: Vec3
   target: Vec3
@@ -30,7 +30,7 @@ export const STATIONS: Station[] = [
   // Picture frame above the sofa.
   { id: 'about', pos: [-1.25, 0.62, -1.5], target: [-1.4, 0.72, -4], span: 1.2, fit: [2.1, 1.45], map: [-1.4, -3.6] },
   // Bookshelf on the right wall.
-  { id: 'skills', pos: [-0.2, 0.25, -1.1], target: [2.7, 0.2, -1.6], span: 1.2, fit: [2.2, 2.5], map: [2.9, -1.6] },
+  { id: 'bookshelf', pos: [-0.2, 0.25, -1.1], target: [2.7, 0.2, -1.6], span: 1.2, fit: [2.2, 2.5], map: [2.9, -1.6] },
   // Experience: a walk along the floor timeline, one stop in front of each company's board.
   ...COMPANIES.map(
     (c, k): Station => ({
@@ -94,7 +94,7 @@ export function nearestStation(screens: number) {
 }
 
 export function stationLabel(id: Station['id'], t: TFunction) {
-  return id === 'hero' ? t('profile.name') : t(`labels.${id}`)
+  return id === 'hero' ? t('profile.nickname') : t(`labels.${id}`)
 }
 
 /** Consecutive stations with the same id form one section of the HUD. */

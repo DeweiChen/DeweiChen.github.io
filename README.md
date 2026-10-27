@@ -8,7 +8,7 @@ It has two switchable layouts:
 - **Immersive** — the name is drawn by a 3D Gaussian Splatting–style particle cloud (Three.js) that ripples away from the cursor. Scrolling dissolves it into a star field while experience floats past on glass cards.
   Switching layouts plays a 2D ↔ 3D transition: the resume card peels off into particles, and collapses back onto the card on the way out — a nod to Vr2dDisplay (2D apps in a 3D scene).
 
-URL parameters: `?mode=3d` opens the immersive layout directly, `?lang=zh|en` picks the language.
+The immersive layout is the front page. URL parameters: `?mode=2d` opens the classic layout directly, `?lang=zh|en` picks the language.
 
 ## Tech stack
 

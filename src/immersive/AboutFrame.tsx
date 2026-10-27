@@ -13,9 +13,9 @@ const H = FRAME.size[1] - MARGIN * 2
 const PX = 2048
 const PY = Math.round((PX * H) / W)
 
-/** The About lines, painted on the picture frame above the sofa. They scan in as the camera arrives. */
+/** The greeting and intro, painted on the picture frame above the sofa. They scan in as the camera arrives. */
 export function AboutFrame({ progress }: { progress: RefObject<ScrollProgress> }) {
-  const { about } = useResume()
+  const { intro } = useResume()
 
   const map = useCanvasTexture(
     PX,
@@ -33,16 +33,10 @@ export function AboutFrame({ progress }: { progress: RefObject<ScrollProgress> }
       // Largest size at which all paragraphs fit.
       const pad = 130
       for (let size = 68; size >= 30; size -= 2) {
-        const paragraphs = about.map((line) =>
-          wrapRuns(
-            ctx,
-            [
-              { text: line.lead, font: `650 ${size}px ${SANS}`, color: '#7fd8f5' },
-              { text: line.text, font: `400 ${size}px ${SANS}`, color: '#d9dcea' },
-            ],
-            PX - pad * 2,
-          ),
-        )
+        const paragraphs = [
+          wrapRuns(ctx, [{ text: intro.greeting, font: `700 ${size * 1.3}px ${SANS}`, color: '#7fd8f5' }], PX - pad * 2),
+          ...intro.lines.map((line) => wrapRuns(ctx, [{ text: line, font: `400 ${size}px ${SANS}`, color: '#d9dcea' }], PX - pad * 2)),
+        ]
         const lineHeight = size * 1.55
         const gap = size * 0.9
         const total = paragraphs.reduce((h, p) => h + p.length * lineHeight, 0) + gap * (paragraphs.length - 1)
@@ -52,7 +46,7 @@ export function AboutFrame({ progress }: { progress: RefObject<ScrollProgress> }
         break
       }
     },
-    [about],
+    [intro],
   )
 
   return (

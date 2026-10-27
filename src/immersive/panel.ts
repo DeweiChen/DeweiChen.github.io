@@ -6,7 +6,7 @@ export const READER_EVENT = 'tour:reader'
 /** Window event asking a walk to open the detail panel of one of its stops, e.g. from the keyboard. */
 export const OPEN_EVENT = 'tour:open'
 export interface OpenDetail {
-  id: 'experience' | 'sideProjects'
+  id: 'experience' | 'sideProjects' | 'hobbies'
   /** Stop within the walk, counted from its first station. */
   index: number
 }

@@ -3,6 +3,7 @@
     "name": "De-Wei Chen",
     "altName": "陳德維",
     "fullName": "陳德維 (De-Wei Chen)",
+    "nickname": "DW",
     "headline": "Product Team Lead · Full-Stack Engineer",
     "location": "Taipei, Taiwan"
   },
@@ -17,6 +18,11 @@
     { "lead": "Top Performer:", "text": " Ranked #1 in performance out of a 70-member department at HTC within my second year." },
     { "lead": "AI-Driven & Problem Solver:", "text": " Actively leveraging AI-assisted workflows to steer development and solve complex engineering challenges." }
   ],
+  "intro": {
+    "greeting": "Hi!",
+    "lines": ["I'm DW, a maker who loves building things with my own hands.", "When I travel, my phone is always out, capturing the world I see.", "I want to keep learning across fields and thinking from many angles."]
+  },
+  "now": { "text": "Reading The Art of Spending Money, looking for the joy that money alone can't buy.", "updated": "Updated" },
   "skills": {
     "ai": { "group": "AI Agents", "items": ["Claude Code", "GitHub Copilot", "Antigravity", "Cursor"] },
     "mobile": { "group": "Mobile", "items": ["Android", "iOS", "Unity3D", "Flutter", "React Native"] },
@@ -25,21 +31,33 @@
     "architecture": { "group": "Architecture", "items": ["Clean Architecture", "Domain-Driven Design (DDD)", "Event-Driven Systems"] },
     "leadership": { "group": "Leadership", "items": ["Engineering Management", "Cross-functional Team Leadership", "Technical Mentoring", "Agile / Scrum Delivery", "Cloud Cost Optimization"] }
   },
+  "books": {
+    "leanStartup": "The Lean Startup",
+    "peak": "Peak",
+    "atomicHabits": "Atomic Habits",
+    "weNeedToTalk": "We Need to Talk",
+    "artOfSpending": "The Art of Spending Money"
+  },
+  "hobbies": {
+    "android": { "name": "Android robot", "text": "From system apps on HTC phones to custom AOSP and the Android framework, Android has been with me for most of my career." },
+    "metaverse": { "name": "Metaverse", "text": "From Viveport and XRSPACE's virtual karaoke and concerts to 3DGS room scans, I've kept bringing people into 3D worlds." }
+  },
   "experience": {
     "freelance": {
       "name": "Independent Contractor",
+      "summary": "Solo contract work, from requirements and architecture to delivery: mobile apps, full-stack web, web rendering and UI test automation.",
       "roles": {
         "freelance": {
           "bullets": [
             "Independently delivered multiple client projects end-to-end as a solo developer, spanning mobile apps, full-stack web development, web rendering, and mobile UI test automation with Appium (SDET).",
-            "Owned the full engagement lifecycle single-handedly — requirements scoping, estimation, architecture, implementation, and handoff.",
-            "Professional Development: Studied product strategy, skill development, and communication, including The Lean Startup, Peak, Atomic Habits, and We Need to Talk."
+            "Owned the full engagement lifecycle single-handedly — requirements scoping, estimation, architecture, implementation, and handoff."
           ]
         }
       }
     },
     "homee": {
       "name": "Homee AI",
+      "summary": "Led a 9-person cross-functional team on the flagship product, worked with 3DGS, RoomPlan and Vision Pro, and cut cloud costs by 87%.",
       "roles": {
         "lead": {
           "bullets": [
@@ -69,6 +87,7 @@
     },
     "xrspace": {
       "name": "XRSPACE",
+      "summary": "Built the MANOVA VR system and the PartyOn virtual karaoke and concerts, from the Android framework down to the multiplayer backend.",
       "roles": {
         "manager": {
           "bullets": [
@@ -119,6 +138,7 @@
     },
     "vive": {
       "name": "HTC Vive",
+      "summary": "Built the Viveport VR store and Cloud Portal, holding a steady 90 FPS in VR.",
       "roles": {
         "principal": {
           "bullets": [
@@ -141,6 +161,7 @@
     },
     "htc": {
       "name": "HTC",
+      "summary": "Where it started: Android system apps and framework components for HTC phones.",
       "roles": {
         "engineer": {
           "bullets": [
@@ -174,7 +195,14 @@
       "note": "Early graduation: completed B.S. + M.S. in 5 years (3.5 + 1.5) for outstanding academic performance."
     }
   },
+  "contactPitch": "I build full-stack web and mobile apps with an AI-assisted workflow. Have a project in mind? Drop me a line.",
   "labels": {
+    "bookshelf": "Bookshelf",
+    "booksRead": "Books read",
+    "reading": "Reading",
+    "now": "Now",
+    "hobbies": "Outside work",
+    "fullResume": "Full resume / PDF",
     "about": "About",
     "skills": "Skills",
     "experience": "Experience",
