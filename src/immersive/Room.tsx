@@ -1,9 +1,10 @@
 import { useEffect, useMemo, type RefObject } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { ShaderMaterial, Vector2 } from 'three'
 import vertexShader from './room.vert?raw'
 import fragmentShader from './room.frag?raw'
 import wireFragmentShader from './roomWire.frag?raw'
+import { isFree, WALK_EVENT } from './freeMode'
 import { buildRoomEdges, buildRoomGeometry, FLOOR_Y, scanHeight } from './roomLayout'
 import type { ScrollProgress } from './useScrollProgress'
 
@@ -62,9 +63,16 @@ export function Room({ progress, lowEnd }: { progress: RefObject<ScrollProgress>
     if (screens > 0.7 && screens < 1.5) state.invalidate()
   })
 
+  // While roaming free, a click on the floor walks there.
+  const walk = (e: ThreeEvent<MouseEvent>) => {
+    if (!isFree() || !e.face || e.face.normal.y < 0.9 || e.point.y > FLOOR_Y + 0.05) return
+    e.stopPropagation()
+    window.dispatchEvent(new CustomEvent<[number, number]>(WALK_EVENT, { detail: [e.point.x, e.point.z] }))
+  }
+
   return (
     <>
-      <mesh geometry={mesh} material={solid} frustumCulled={false} />
+      <mesh geometry={mesh} material={solid} frustumCulled={false} onClick={walk} />
       {/* Drawn before other transparent things so panels in front cover the edges behind them. */}
       <lineSegments geometry={edges} material={wire} frustumCulled={false} renderOrder={-1} />
     </>

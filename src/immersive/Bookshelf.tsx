@@ -6,7 +6,7 @@ import { useResume } from '@/i18n/useResume'
 import { CYAN, MUTED, OPEN_EVENT, TEXT, type OpenDetail, type PanelLayout } from './panel'
 import { Reader } from './Reader'
 import { SHELF } from './roomLayout'
-import { STATIONS, stationPresence } from './stations'
+import { goToStation, STATIONS, stationPresence } from './stations'
 import { TextPlane } from './TextPlane'
 import { drawLines, SANS, useCanvasTexture, wrapRuns } from './textCanvas'
 import { useScanClip } from './useScanClip'
@@ -438,6 +438,12 @@ export function Bookshelf({ progress }: { progress: RefObject<ScrollProgress> })
   }, [invalidate])
 
   const presence = () => stationPresence(progress.current.screens, INDEX)
+  // Clicked from across the room: go to the shelf, and open once there.
+  const open = (i: number) => {
+    if (presence() > 0.9) return setSelected(i)
+    pending.current = i
+    goToStation(INDEX)
+  }
   useFrame(() => {
     const p = presence()
     if (pending.current !== null && p > 0.9) {
@@ -464,7 +470,7 @@ export function Bookshelf({ progress }: { progress: RefObject<ScrollProgress> })
         <Book key={b.key} spec={b} clip={clip} visible={visible} />
       ))}
       {reading && (
-        <Cover title={reading.title} clip={clip} visible={visible} onSelect={() => setSelected(hobbies.length)} groupRef={source(hobbies.length)} />
+        <Cover title={reading.title} clip={clip} visible={visible} onSelect={() => open(hobbies.length)} groupRef={source(hobbies.length)} />
       )}
       {hobbies.map((h, i) => (
         <Keepsake
@@ -473,7 +479,7 @@ export function Bookshelf({ progress }: { progress: RefObject<ScrollProgress> })
           row={2}
           height={0.36}
           active={() => presence() > 0}
-          onSelect={() => setSelected(i)}
+          onSelect={() => open(i)}
           groupRef={source(i)}
         >
           {h.id === 'android' ? <Robot clip={clip} /> : <Headset clip={clip} />}

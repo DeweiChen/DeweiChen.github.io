@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ChevronDown, ChevronLeft, ChevronRight, Map } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, Footprints, Map, Route } from 'lucide-react'
 import { SocialLinks } from '@/components/SocialLinks'
 import { useTranslation } from 'react-i18next'
 import { useResume } from '@/i18n/useResume'
 import { cn } from '@/lib/utils'
+import { POSE_EVENT, setFree, useFreeMode } from './freeMode'
 import { READER_EVENT } from './panel'
 import { EXPERIENCE, goToStation, SECTIONS, sectionOf, STATIONS, TOUR_LENGTH, stationLabel, tourPosition } from './stations'
 import { OUTLINE } from './roomLayout'
@@ -47,14 +48,29 @@ const PLAN_H = (PLAN.z1 - PLAN.z0) * 10
 const planX = (x: number) => (x - PLAN.x0) * 10
 const planY = (z: number) => (z - PLAN.z0) * 10
 
+/** The camera's spot on the floor while roaming free, or null on the tour. */
+function useRoamPose(free: boolean) {
+  const [pose, setPose] = useState<[number, number] | null>(null)
+  useEffect(() => {
+    if (!free) return
+    const onPose = (e: Event) => setPose((e as CustomEvent<[number, number]>).detail)
+    window.addEventListener(POSE_EVENT, onPose)
+    return () => {
+      window.removeEventListener(POSE_EVENT, onPose)
+      setPose(null)
+    }
+  }, [free])
+  return pose
+}
+
 /** Top-down map of the room, like a headset's guardian view: stations as dots, you as the marker. */
-function FloorPlan({ position, current }: { position: number; current: number }) {
+function FloorPlan({ position, current, roam }: { position: number; current: number; roam: [number, number] | null }) {
   const { t } = useTranslation()
   const i = Math.min(STATIONS.length - 2, Math.floor(position))
   const f = position - i
   const [ax, az] = STATIONS[i].map
   const [bx, bz] = STATIONS[i + 1].map
-  const me = [ax + (bx - ax) * f, az + (bz - az) * f]
+  const me = roam ?? [ax + (bx - ax) * f, az + (bz - az) * f]
 
   return (
     <svg viewBox={`0 0 ${PLAN_W} ${PLAN_H}`} className="h-auto w-full select-none" style={{ aspectRatio: `${PLAN_W} / ${PLAN_H}` }} aria-hidden>
@@ -86,6 +102,28 @@ function FloorPlan({ position, current }: { position: number; current: number })
   )
 }
 
+/** Switches between the scroll-driven tour and roaming the room freely. */
+function ModeToggle({ free, compact }: { free: boolean; compact?: boolean }) {
+  const { t } = useTranslation()
+  const label = free ? t('labels.tourMode') : t('labels.freeMode')
+  const Icon = free ? Route : Footprints
+  return (
+    <button
+      type="button"
+      onClick={() => setFree(!free)}
+      aria-label={label}
+      title={label}
+      className={cn(
+        'flex items-center gap-1 rounded-full border border-white/10 bg-white/5 text-muted-foreground transition hover:border-primary/60 hover:text-primary',
+        compact ? 'size-7 justify-center' : 'px-2 py-0.5 text-[11px]',
+      )}
+    >
+      <Icon className="size-3.5" />
+      {!compact && label}
+    </button>
+  )
+}
+
 /** Everything DOM in immersive mode: the hero caption, the scroll track that drives the tour, and the HUD. */
 export function TourOverlay({ visible }: { visible: boolean }) {
   const r = useResume()
@@ -106,6 +144,8 @@ export function TourOverlay({ visible }: { visible: boolean }) {
   const [idleAtStation, setIdleAtStation] = useState(false)
   const isIdle = arrived && idleAtStation
   const hudVisible = visible && screens > 0.5 && !reading
+  const free = useFreeMode()
+  const roam = useRoamPose(free)
 
   // Dim the title when resting at a station to keep the 3D scene unobstructed.
   useEffect(() => {
@@ -134,8 +174,9 @@ export function TourOverlay({ visible }: { visible: boolean }) {
     if (!visible || reading) return
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
-      if (e.key === 'ArrowRight') goTo(current + 1)
-      else if (e.key === 'ArrowLeft') goTo(current - 1)
+      // While roaming the arrow keys walk (see FreeRig).
+      if (e.key === 'ArrowRight' && !free) goTo(current + 1)
+      else if (e.key === 'ArrowLeft' && !free) goTo(current - 1)
       else if (/^[1-9]$/.test(e.key) && Number(e.key) <= SECTIONS.length) goTo(SECTIONS[Number(e.key) - 1].first)
       else if (e.key === 'm' || e.key === 'M') setCollapsed((c) => !c)
       else return
@@ -143,7 +184,7 @@ export function TourOverlay({ visible }: { visible: boolean }) {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [visible, reading, current])
+  }, [visible, reading, current, free])
 
   return (
     <>
@@ -243,6 +284,7 @@ export function TourOverlay({ visible }: { visible: boolean }) {
               )}
               <Map className="ml-1 size-3.5 text-muted-foreground transition hover:text-foreground" />
             </button>
+            <ModeToggle free={free} compact />
             <button
               type="button"
               disabled={current === STATIONS.length - 1}
@@ -262,19 +304,23 @@ export function TourOverlay({ visible }: { visible: boolean }) {
                   {t('labels.map')}
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => setCollapsed(true)}
-                aria-label={t('labels.collapseMap')}
-                className="grid size-5 place-items-center rounded text-muted-foreground transition hover:bg-white/10 hover:text-foreground"
-              >
-                <ChevronDown className="size-3.5" />
-              </button>
+              <div className="flex items-center gap-1">
+                <ModeToggle free={free} />
+                <button
+                  type="button"
+                  onClick={() => setCollapsed(true)}
+                  aria-label={t('labels.collapseMap')}
+                  className="grid size-5 place-items-center rounded text-muted-foreground transition hover:bg-white/10 hover:text-foreground"
+                >
+                  <ChevronDown className="size-3.5" />
+                </button>
+              </div>
             </div>
+            {free && <p className="px-0.5 text-[11px] leading-snug text-muted-foreground">{t('labels.freeHint')}</p>}
 
             <div className="grid grid-cols-[104px_1fr] items-center gap-2.5">
               <div className="rounded-lg border border-white/5 bg-white/[0.02] p-1">
-                <FloorPlan position={position} current={current} />
+                <FloorPlan position={position} current={current} roam={roam} />
               </div>
               <div className="flex h-full flex-col justify-between py-0.5">
                 <ol className="flex flex-col gap-0.5 text-[11px]">

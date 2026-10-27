@@ -197,6 +197,9 @@
   },
   "contactPitch": "I build full-stack web and mobile apps with an AI-assisted workflow. Have a project in mind? Drop me a line.",
   "labels": {
+    "freeMode": "Free roam",
+    "tourMode": "Guided tour",
+    "freeHint": "Drag to look around and click the floor to walk, or use WASD, the arrow keys or the wheel.",
     "bookshelf": "Bookshelf",
     "booksRead": "Books read",
     "reading": "Reading",

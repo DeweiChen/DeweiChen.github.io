@@ -6,9 +6,10 @@ import { useResume, type Resume } from '@/i18n/useResume'
 import { paintAppScreen, SCREEN_IMAGES } from './appScreens'
 import { CYAN, MUTED, panelBackground, TEXT, type PanelLayout } from './panel'
 import { Reader } from './Reader'
+import { shownWhenFree } from './freeMode'
 import { Beam, Fixture, GlowPool, type Rgb } from './GlowPool'
 import { CEILING_Y, FLOOR_Y, GALLERY } from './roomLayout'
-import { SIDE_PROJECTS, STATION_AT, tourPosition } from './stations'
+import { goToStation, SIDE_PROJECTS, tourPosition } from './stations'
 import { TextPlane } from './TextPlane'
 import { drawExternalArrow, drawLines, drawRightArrow, SANS, useCanvasTexture, useImage, wrapRuns } from './textCanvas'
 import { useOpenRequest } from './useOpenRequest'
@@ -280,15 +281,16 @@ function Exhibit({
   const arrive = () => smoothstep(index - 0.9, index - 0.25, walk())
   const focus = () => Math.max(0, 1 - Math.abs(walk() - index))
   // Past the last stop the exhibits sink back down, clearing the view across the room.
-  const shown = () => arrive() * (1 - smoothstep(GALLERY.zs.length - 0.6, GALLERY.zs.length - 0.1, walk()))
-  const glow = () => lift.current * 0.3 - (1 - focus()) * 0.45
+  const here = () => arrive() * (1 - smoothstep(GALLERY.zs.length - 0.6, GALLERY.zs.length - 0.1, walk()))
+  const shown = () => shownWhenFree(here())
+  const glow = () => lift.current * 0.3 - (1 - shownWhenFree(focus())) * 0.45
   // The spotlight follows the walk: only the exhibit you are standing at is lit.
   const lit = () => {
     const f = focus()
     return shown() * f * f * (3 - 2 * f)
   }
   // Only animate the exhibit's prop and phone while this stop is in view and the detail reader is closed.
-  const active = () => !reading && shown() > 0.001 && walk() < index + 0.75
+  const active = () => !reading && here() > 0.001 && walk() < index + 0.75
 
   useEffect(() => {
     if (!hovered) return
@@ -482,7 +484,7 @@ export function SideProjects({ progress }: { progress: RefObject<ScrollProgress>
     if (Math.abs(walk() - i) < 0.1) return setSelected(i)
     setSelected(null)
     heading.current = { to: i, ttl: 3 }
-    window.scrollTo({ top: STATION_AT[SIDE_PROJECTS.first + i] * innerHeight, behavior: 'smooth' })
+    goToStation(SIDE_PROJECTS.first + i)
   }
 
   useOpenRequest('sideProjects', walk, setSelected)

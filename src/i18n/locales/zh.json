@@ -197,6 +197,9 @@
   },
   "contactPitch": "擅長全端與 App 開發，也熟悉 AI 輔助開發流程。有專案想委託，歡迎來信聊聊。",
   "labels": {
+    "freeMode": "自由移動",
+    "tourMode": "回到導覽",
+    "freeHint": "拖曳轉視角，點地板走過去；也可用 WASD、方向鍵或滾輪移動。",
     "bookshelf": "書櫃",
     "booksRead": "讀過的書",
     "reading": "正在讀",

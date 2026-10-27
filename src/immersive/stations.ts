@@ -1,4 +1,5 @@
 import type { TFunction } from 'i18next'
+import { isFree } from './freeMode'
 import { CERTS, DOOR, FRONT_Z, GALLERY } from './roomLayout'
 import { BOARD_Z, COMPANIES } from './timelineLayout'
 
@@ -115,9 +116,10 @@ export const SIDE_PROJECTS = SECTIONS.find((s) => s.id === 'sideProjects')!
 /**
  * Scrolls the page to station `i`: a neighbour is walked to, anything further is jumped
  * to at once and the camera flies straight there (see useScrollProgress and CameraRig).
+ * While roaming free every station is jumped to, and FreeRig flies there.
  */
 export function goToStation(i: number) {
   const index = Math.min(STATIONS.length - 1, Math.max(0, i))
-  const far = Math.abs(index - tourPosition(scrollY / innerHeight)) > 1.2
+  const far = isFree() || Math.abs(index - tourPosition(scrollY / innerHeight)) > 1.2
   window.scrollTo({ top: STATION_AT[index] * innerHeight, behavior: far ? 'instant' : 'smooth' })
 }

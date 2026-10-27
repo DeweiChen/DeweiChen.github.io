@@ -7,9 +7,10 @@ import htcLogo from '@/assets/print/htc.png'
 import viveLogo from '@/assets/print/vive.png'
 import xrspaceLogo from '@/assets/print/xrspace.png'
 import { useResume, type Resume } from '@/i18n/useResume'
+import { shownWhenFree } from './freeMode'
 import { GlowPool } from './GlowPool'
 import { FLOOR_Y } from './roomLayout'
-import { EXPERIENCE, STATION_AT, tourPosition } from './stations'
+import { EXPERIENCE, goToStation, tourPosition } from './stations'
 import { CYAN, MUTED, panelBackground, TEXT, type PanelLayout } from './panel'
 import { Reader } from './Reader'
 import { TextPlane } from './TextPlane'
@@ -157,7 +158,7 @@ function TimelineFloor({ boards, walk }: { boards: BoardSpec[]; walk: () => numb
       height={DECAL.z1 - DECAL.z0}
       position={[(DECAL.x0 + DECAL.x1) / 2, FLOOR_Y + 0.025, (DECAL.z0 + DECAL.z1) / 2]}
       rotation={[-Math.PI / 2, 0, 0]}
-      reveal={() => smoothstep(-1.2, -0.6, walk()) * (1 - smoothstep(COMPANIES.length - 0.6, COMPANIES.length - 0.1, walk()))}
+      reveal={() => shownWhenFree(smoothstep(-1.2, -0.6, walk()) * (1 - smoothstep(COMPANIES.length - 0.6, COMPANIES.length - 0.1, walk())))}
       // Lit up to where the walk has reached, with a glowing head on the line.
       fill={() => [(headX(walk()) - DECAL.x0) / (DECAL.x1 - DECAL.x0), 1 - decalY(LINE_Z) / DECAL_PY]}
     />
@@ -190,8 +191,8 @@ function Board({
   const standMaterial = useMemo(() => new MeshStandardMaterial({ color: '#2a2b45', clippingPlanes: [clip] }), [clip])
   useEffect(() => () => standMaterial.dispose(), [standMaterial])
   // Rises out of the floor as the walk approaches; only the board at the current stop is lit.
-  const arrive = () => smoothstep(k - 0.9, k - 0.25, walk())
-  const focus = () => Math.max(0, 1 - Math.abs(walk() - k))
+  const arrive = () => shownWhenFree(smoothstep(k - 0.9, k - 0.25, walk()))
+  const focus = () => shownWhenFree(Math.max(0, 1 - Math.abs(walk() - k)))
   // Past the last stop the boards scan out again, clearing the view across the room.
   const shown = () => arrive() * (1 - smoothstep(COMPANIES.length - 0.6, COMPANIES.length - 0.1, walk()))
   const outer = useRef<Group>(null)
@@ -383,7 +384,7 @@ export function Timeline({ progress }: { progress: RefObject<ScrollProgress> }) 
     if (Math.abs(walk() - i) < 0.1) return setSelected(i)
     setSelected(null)
     heading.current = { to: i, ttl: 3 }
-    window.scrollTo({ top: STATION_AT[EXPERIENCE.first + i] * innerHeight, behavior: 'smooth' })
+    goToStation(EXPERIENCE.first + i)
   }
 
   useOpenRequest('experience', walk, setSelected)

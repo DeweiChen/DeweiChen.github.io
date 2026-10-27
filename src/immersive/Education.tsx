@@ -3,8 +3,9 @@ import { useFrame } from '@react-three/fiber'
 import { Color, MeshBasicMaterial } from 'three'
 import { useResume, type Resume } from '@/i18n/useResume'
 import { GlowPool } from './GlowPool'
+import { shownWhenFree } from './freeMode'
 import { CERTS, LAMP } from './roomLayout'
-import { STATIONS, stationPresence } from './stations'
+import { goToStation, STATIONS, stationPresence } from './stations'
 import { TextPlane } from './TextPlane'
 import { SANS, useCanvasTexture, wrapRuns } from './textCanvas'
 import type { ScrollProgress } from './useScrollProgress'
@@ -86,9 +87,13 @@ function Certificate({ degree, y, presence }: { degree: Degree; y: number; prese
       height={CERTS.size[1]}
       position={[CERTS.x - 0.022, y, CERTS.z]}
       rotation={[0, -Math.PI / 2, 0]}
-      reveal={() => Math.min(1, presence() * 1.4)}
+      reveal={() => shownWhenFree(Math.min(1, presence() * 1.4))}
       // Lit by the lamp once it is on.
       glow={() => presence() * 0.18}
+      onClick={(e) => {
+        e.stopPropagation()
+        goToStation(INDEX)
+      }}
     />
   )
 }

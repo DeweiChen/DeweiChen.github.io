@@ -4,9 +4,10 @@ import { useTranslation } from 'react-i18next'
 import { MathUtils, MeshBasicMaterial, MeshStandardMaterial, type Group, type Plane } from 'three'
 import { useResume } from '@/i18n/useResume'
 import { CYAN, MUTED, panelBackground, TEXT } from './panel'
+import { shownWhenFree } from './freeMode'
 import { GlowPool } from './GlowPool'
 import { DOOR, FLOOR_Y } from './roomLayout'
-import { STATIONS, stationPresence } from './stations'
+import { goToStation, STATIONS, stationPresence } from './stations'
 import { TextPlane } from './TextPlane'
 import { drawExternalArrow, drawReturnArrow, SANS, useCanvasTexture, wrapRuns } from './textCanvas'
 import { useScanClip } from './useScanClip'
@@ -82,7 +83,7 @@ function Plate({ presence }: { presence: () => number }) {
       height={panel.h}
       position={[WALL, panel.y, panel.z]}
       rotation={FACE_IN}
-      reveal={() => Math.min(1, presence() * 1.4)}
+      reveal={() => shownWhenFree(Math.min(1, presence() * 1.4))}
     />
   )
 }
@@ -178,7 +179,7 @@ function WallButton({
         height={button.h}
         position={[BUTTON.d / 2 + 0.001, 0, 0]}
         rotation={FACE_IN}
-        reveal={() => Math.min(1, presence() * 1.4)}
+        reveal={() => shownWhenFree(Math.min(1, presence() * 1.4))}
         glow={() => pop.current * 0.4}
         onPointerOver={(e: ThreeEvent<PointerEvent>) => {
           e.stopPropagation()
@@ -187,6 +188,8 @@ function WallButton({
         onPointerOut={() => setHovered(false)}
         onClick={(e) => {
           e.stopPropagation()
+          // From across the room, the first click only goes to the wall.
+          if (presence() < 0.9) return goToStation(INDEX)
           press.current = 1
           invalidate()
           window.open(href, href.startsWith('mailto:') ? '_self' : '_blank', 'noopener')
@@ -307,6 +310,7 @@ function Door({ clip, presence, onExit }: { clip: Plane; presence: () => number;
             onPointerOut={() => setHovered(false)}
             onClick={(e) => {
               e.stopPropagation()
+              if (presence() < 0.9) return goToStation(INDEX)
               setPushed(true)
             }}
           >
@@ -322,7 +326,7 @@ function Door({ clip, presence, onExit }: { clip: Plane; presence: () => number;
             height={signW * (py / px)}
             position={[0.022, 0.35, 0]}
             rotation={FACE_IN}
-            reveal={() => Math.min(1, presence() * 1.4)}
+            reveal={() => shownWhenFree(Math.min(1, presence() * 1.4))}
             glow={() => swing.current}
           />
         </group>

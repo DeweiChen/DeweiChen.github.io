@@ -1,7 +1,8 @@
 import type { RefObject } from 'react'
 import { useResume } from '@/i18n/useResume'
+import { shownWhenFree } from './freeMode'
 import { FRAME } from './roomLayout'
-import { STATIONS, stationPresence } from './stations'
+import { goToStation, STATIONS, stationPresence } from './stations'
 import { TextPlane } from './TextPlane'
 import { drawLines, SANS, useCanvasTexture, wrapRuns } from './textCanvas'
 import type { ScrollProgress } from './useScrollProgress'
@@ -55,9 +56,13 @@ export function AboutFrame({ progress }: { progress: RefObject<ScrollProgress> }
       width={W}
       height={H}
       position={[FRAME.center[0], FRAME.center[1], FRAME.center[2] + 0.025]}
+      onClick={(e) => {
+        e.stopPropagation()
+        goToStation(INDEX)
+      }}
       reveal={() => {
         const p = Math.min(1, stationPresence(progress.current.screens, INDEX) * 1.4)
-        return p * p * (3 - 2 * p)
+        return shownWhenFree(p * p * (3 - 2 * p))
       }}
     />
   )

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, type RefObject } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { CatmullRomCurve3, Quaternion, Vector2, Vector3, type PerspectiveCamera } from 'three'
+import { Quaternion, Vector2, Vector3, type PerspectiveCamera } from 'three'
 import { Bloom } from './Bloom'
 import { TourOutline } from './TourOutline'
 import { TourOverlay } from './TourOverlay'
@@ -9,10 +9,12 @@ import { Bookshelf } from './Bookshelf'
 import { Contact } from './Contact'
 import { Education } from './Education'
 import { Room } from './Room'
-import { LIVING } from './roomLayout'
 import { SideProjects } from './SideProjects'
 import { Timeline } from './Timeline'
 import { SplatPortrait, type PixelRect } from './SplatPortrait'
+import { Flight, setFree, useFreeMode } from './freeMode'
+import { FreeRig } from './FreeRig'
+import { railPose } from './rail'
 import { STATIONS, tourPosition } from './stations'
 import { useScrollProgress, type ScrollProgress } from './useScrollProgress'
 import { READER_EVENT } from './panel'
@@ -32,25 +34,6 @@ const DEBUG = new URLSearchParams(location.search).get('debug') === '1'
 // Its own chunk, so drei only downloads when debugging.
 const Stats = lazy(() => import('@react-three/drei').then((m) => ({ default: m.Stats })))
 
-const toVec = ([x, y, z]: [number, number, number]) => new Vector3(x, y, z)
-// The path runs through every station and any waypoints between them. POINT_AT maps a
-// station to its point on the path, so (fractional) station indices map onto path params.
-const POINTS = STATIONS.flatMap((s) => [s, ...(s.via ? [s.via] : [])])
-const POINT_AT = STATIONS.reduce<number[]>((acc, _, i) => {
-  acc.push(i === 0 ? 0 : acc[i - 1] + (STATIONS[i - 1].via ? 2 : 1))
-  return acc
-}, [])
-const POS_PATH = new CatmullRomCurve3(POINTS.map((s) => toVec(s.pos)))
-const TARGET_PATH = new CatmullRomCurve3(POINTS.map((s) => toVec(s.target)))
-
-function pathParam(at: number) {
-  const i = Math.min(STATIONS.length - 2, Math.floor(at))
-  const p = POINT_AT[i] + (POINT_AT[i + 1] - POINT_AT[i]) * (at - i)
-  return p / (POINTS.length - 1)
-}
-const FLIGHT_SECONDS = 1.2
-/** How far the camera rises mid-flight, so a jump reads as flying over rather than sliding. */
-const FLIGHT_LIFT = 0.35
 // Scratch vectors for the rig; there is only ever one camera.
 const tmp = { pos: new Vector3(), target: new Vector3(), back: new Vector3(), right: new Vector3() }
 
@@ -61,20 +44,20 @@ const tmp = { pos: new Vector3(), target: new Vector3(), back: new Vector3(), ri
  */
 function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
   const invalidate = useThree((s) => s.invalidate)
+  const camera = useThree((s) => s.camera)
   const pointer = useRef(new Vector2())
   const sway = useRef(new Vector2())
   const lastScreens = useRef<number | null>(null)
   const reading = useRef(false)
-  const flight = useRef({
-    active: false,
-    t: 0,
-    from: new Vector3(),
-    fromQ: new Quaternion(),
-    pos: new Vector3(),
-    q: new Quaternion(),
-    last: new Vector3(),
-    lastQ: new Quaternion(),
-  })
+  const flight = useRef(new Flight())
+  const last = useRef({ pos: new Vector3(), q: new Quaternion() })
+
+  // Coming back from free roam mid-tour: fly from wherever the camera was onto the rail.
+  useEffect(() => {
+    if (progress.current.screens < 0.5) return
+    flight.current.start(camera.position, camera.quaternion)
+    invalidate()
+  }, [camera, invalidate, progress])
 
   useEffect(() => {
     const onReader = (e: Event) => {
@@ -99,30 +82,11 @@ function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
     if (reading.current) return
     const d = Math.min(dt, 0.05)
     const { screens } = progress.current
-    const u = pathParam(tourPosition(screens))
     const { pos, target, back, right } = tmp
-    POS_PATH.getPoint(u, pos)
-    TARGET_PATH.getPoint(u, target)
+    railPose(tourPosition(screens), camera as PerspectiveCamera, size.width / size.height, pos, target)
+    back.subVectors(pos, target).normalize()
 
     const away = Math.min(1, screens)
-    back.subVectors(pos, target)
-    const dist = back.length()
-    back.normalize()
-
-    // Back off along the view direction until the station's subject fits the viewport
-    // (mostly matters on portrait phones), but never through the room's walls.
-    const at = tourPosition(screens)
-    const i = Math.min(STATIONS.length - 2, Math.floor(at))
-    const f = at - i
-    const [w0, h0] = STATIONS[i].fit
-    const [w1, h1] = STATIONS[i + 1].fit
-    const tanHalf = Math.tan(((camera as PerspectiveCamera).fov * Math.PI) / 360)
-    const needed = 1.1 * Math.max((h0 + (h1 - h0) * f) / 2 / tanHalf, (w0 + (w1 - w0) * f) / 2 / (tanHalf * (size.width / size.height)))
-    if (needed > dist) {
-      pos.addScaledVector(back, needed - dist)
-      pos.x = Math.min(LIVING.x1 - 0.2, Math.max(LIVING.x0 + 0.2, pos.x))
-    }
-
     if (away > 0 && !sway.current.equals(pointer.current)) {
       if (sway.current.distanceToSquared(pointer.current) > 1e-6) {
         sway.current.lerp(pointer.current, 1 - Math.exp(-d * 3))
@@ -139,39 +103,26 @@ function CameraRig({ progress }: { progress: RefObject<ScrollProgress> }) {
     camera.lookAt(target)
 
     // A jump along the tour (an index click) flies there in one arc rather than replaying every stop.
-    const f0 = flight.current
+    // The camera already stands at the destination above; start from where it was last frame.
     if (lastScreens.current !== null && Math.abs(screens - lastScreens.current) > 1) {
-      // The camera already stands at the destination above; start from where it was last frame.
-      f0.from.copy(f0.last)
-      f0.fromQ.copy(f0.lastQ)
-      f0.t = 0
-      f0.active = true
+      flight.current.start(last.current.pos, last.current.q)
     }
     lastScreens.current = screens
-    if (f0.active) {
-      f0.t = Math.min(1, f0.t + d / FLIGHT_SECONDS)
-      const e = f0.t * f0.t * (3 - 2 * f0.t)
-      f0.pos.lerpVectors(f0.from, camera.position, e)
-      f0.pos.y += Math.sin(Math.PI * e) * FLIGHT_LIFT
-      f0.q.slerpQuaternions(f0.fromQ, camera.quaternion, e)
-      camera.position.copy(f0.pos)
-      camera.quaternion.copy(f0.q)
-      if (f0.t >= 1) f0.active = false
-      invalidate()
-    }
-    f0.last.copy(camera.position)
-    f0.lastQ.copy(camera.quaternion)
+    if (flight.current.apply(camera, d)) invalidate()
+    last.current.pos.copy(camera.position)
+    last.current.q.copy(camera.quaternion)
   }, -1)
   return null
 }
 
 function Stage({ cardRect, direction, lowEnd, onMorphDone, onExit }: ImmersiveSceneProps) {
   const progress = useScrollProgress()
+  const free = useFreeMode()
   const count = lowEnd ? 8000 : innerWidth < 640 ? 12000 : 24000
 
   return (
     <>
-      <CameraRig progress={progress} />
+      {free ? <FreeRig /> : <CameraRig progress={progress} />}
       <Room progress={progress} lowEnd={lowEnd} />
       <ambientLight intensity={0.6} />
       <directionalLight position={[-2, 3, 2]} intensity={1.2} />
@@ -194,6 +145,13 @@ function Stage({ cardRect, direction, lowEnd, onMorphDone, onExit }: ImmersiveSc
 }
 
 export default function ImmersiveScene(props: ImmersiveSceneProps) {
+  // Leaving for the classic page puts the camera back on the rail first, so the name can re-form.
+  const leaving = props.direction === 'out'
+  useEffect(() => {
+    if (leaving) setFree(false)
+  }, [leaving])
+  useEffect(() => () => setFree(false), [])
+
   return (
     <>
       <div className="fixed inset-0 z-0" aria-hidden>
