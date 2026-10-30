@@ -13,7 +13,7 @@ interface Box {
 }
 
 export const FLOOR_Y = -1.6
-export const CEILING_Y = 1.9
+export const CEILING_Y = 2.35
 
 const smoothstep = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)))
@@ -30,22 +30,24 @@ export function scanHeight(screens: number) {
 
 // A single rectangular room: living area at the back, the Experience timeline across
 // the middle, and the side-project gallery along the front half of the right wall.
-const W = Math.max(6.4, (Math.max(-LINE_X0, LINE_X1) + 0.2) * 2)
-const BACK_Z = -4
+const W = Math.max(8.4, (Math.max(-LINE_X0, LINE_X1) + 0.9) * 2)
+export const BACK_Z = -5.2
 const H = CEILING_Y - FLOOR_Y
 const WALL_Y = (CEILING_Y + FLOOR_Y) / 2
 
 /** Side-project gallery: one exhibit per project along the front of the right wall, facing -x. */
-const GALLERY_SPACING = 1.4
-const GALLERY_Z0 = 0.2
+const GALLERY_SPACING = 1.8
+const GALLERY_Z0 = 1.5
 export const GALLERY = {
   /** Right wall of the room, which the wall labels hang on. */
   wallX: W / 2,
-  caseX: W / 2 - 0.65,
+  caseX: W / 2 - 0.7,
   zs: sideProjects.map((_, i) => GALLERY_Z0 + i * GALLERY_SPACING),
 }
 
-export const FRONT_Z = Math.max(2, (GALLERY.zs[GALLERY.zs.length - 1] ?? 0) + 0.8)
+export const FRONT_Z = Math.max(3.2, (GALLERY.zs[GALLERY.zs.length - 1] ?? GALLERY_Z0) + 1.2)
+/** Default camera distance for the hero stop, always clear of the room's front edge as the gallery grows. */
+export const HERO_Z = Math.max(7.5, FRONT_Z + 2.4)
 
 export const LIVING = { x0: -W / 2, x1: W / 2, z0: BACK_Z, z1: FRONT_Z }
 
@@ -58,19 +60,19 @@ export const OUTLINE: [number, number][] = [
 ]
 
 /** Door in the left wall, between z0 and z1 and hinged at z0. It leads back to the classic page. */
-export const DOOR = { x: -W / 2, z0: -2.5, z1: -1.64, top: FLOOR_Y + 2 }
+export const DOOR = { x: -W / 2, z0: -3.3, z1: -2.4, top: FLOOR_Y + 2.05 }
 
 /** Floor lamp in the back right corner. */
-export const LAMP = { x: 2.72, z: -3.68, shadeY: 0.5, shade: 0.4 }
+export const LAMP = { x: W / 2 - 0.52, z: BACK_Z + 0.36, shadeY: 0.55, shade: 0.4 }
 
 /** Framed certificates on the right wall beside the lamp, facing -x; one per degree, top to bottom. */
-export const CERTS = { x: W / 2 - 0.035, z: -3.05, size: [0.8, 0.56] as [number, number], ys: [0.62, -0.04] }
+export const CERTS = { x: W / 2 - 0.035, z: BACK_Z + 1.05, size: [0.8, 0.56] as [number, number], ys: [0.68, -0.02] }
 
 /** Picture frame above the sofa, facing +z. */
-export const FRAME = { center: [-1.4, 0.72, -3.96] as Box['pos'], size: [1.95, 1.3] as [number, number] }
+export const FRAME = { center: [-1.75, 0.78, BACK_Z + 0.04] as Box['pos'], size: [2.05, 1.36] as [number, number] }
 
 /** Bookshelf against the right wall, open towards -x. `boards` are shelf heights, bottom to top. */
-export const SHELF = { x: 2.95, depth: 0.45, z0: -2.6, z1: -0.6, boards: [-1.58, -1.0, -0.2, 0.6, 1.38], board: 0.04 }
+export const SHELF = { x: W / 2 - 0.25, depth: 0.45, z0: -3.2, z1: -1.0, boards: [-1.58, -0.98, -0.15, 0.68, 1.5], board: 0.04 }
 
 function bookshelf(): Box[] {
   const { x, depth, z0, z1, boards, board } = SHELF
@@ -108,25 +110,25 @@ const ROOM: Box[] = [
   box([-W / 2, (DOOR.top + CEILING_Y) / 2, (DOOR.z0 + DOOR.z1) / 2], [0.04, CEILING_Y - DOOR.top, DOOR.z1 - DOOR.z0], 0),
 
   // Window on the back wall
-  box([1.5, 1.15, -3.95], [1.7, 0.06, 0.08]),
-  box([1.5, -0.3, -3.95], [1.7, 0.06, 0.08]),
-  box([0.65, 0.425, -3.95], [0.06, 1.5, 0.08]),
-  box([2.35, 0.425, -3.95], [0.06, 1.5, 0.08]),
-  box([1.5, 0.425, -3.95], [0.04, 1.5, 0.06], 1, true),
+  box([1.85, 1.22, BACK_Z + 0.05], [1.8, 0.06, 0.08]),
+  box([1.85, -0.28, BACK_Z + 0.05], [1.8, 0.06, 0.08]),
+  box([0.95, 0.47, BACK_Z + 0.05], [0.06, 1.56, 0.08]),
+  box([2.75, 0.47, BACK_Z + 0.05], [0.06, 1.56, 0.08]),
+  box([1.85, 0.47, BACK_Z + 0.05], [0.04, 1.56, 0.06], 1, true),
 
   // Sofa
-  box([-1.4, -1.36, -3.4], [2.2, 0.44, 0.9]),
-  box([-1.4, -0.86, -3.78], [2.2, 0.6, 0.18]),
-  box([-2.55, -1.18, -3.4], [0.18, 0.5, 0.9]),
-  box([-0.25, -1.18, -3.4], [0.18, 0.5, 0.9]),
+  box([-1.75, -1.36, BACK_Z + 0.6], [2.3, 0.44, 0.92]),
+  box([-1.75, -0.86, BACK_Z + 0.22], [2.3, 0.6, 0.18]),
+  box([-2.95, -1.18, BACK_Z + 0.6], [0.18, 0.5, 0.92]),
+  box([-0.55, -1.18, BACK_Z + 0.6], [0.18, 0.5, 0.92]),
 
   // Coffee table + rug
-  box([-1.3, -1.22, -2.2], [1.3, 0.06, 0.65]),
-  box([-1.88, -1.41, -2.45], [0.05, 0.34, 0.05], 1, true),
-  box([-0.72, -1.41, -2.45], [0.05, 0.34, 0.05], 1, true),
-  box([-1.88, -1.41, -1.95], [0.05, 0.34, 0.05], 1, true),
-  box([-0.72, -1.41, -1.95], [0.05, 0.34, 0.05], 1, true),
-  box([-1.3, -1.575, -2.5], [2.8, 0.01, 1.9], 1, true),
+  box([-1.65, -1.22, BACK_Z + 1.85], [1.35, 0.06, 0.68]),
+  box([-2.25, -1.41, BACK_Z + 1.58], [0.05, 0.34, 0.05], 1, true),
+  box([-1.05, -1.41, BACK_Z + 1.58], [0.05, 0.34, 0.05], 1, true),
+  box([-2.25, -1.41, BACK_Z + 2.12], [0.05, 0.34, 0.05], 1, true),
+  box([-1.05, -1.41, BACK_Z + 2.12], [0.05, 0.34, 0.05], 1, true),
+  box([-1.65, -1.575, BACK_Z + 1.55], [3.0, 0.01, 2.05], 1, true),
 
   // Bookshelf against the right wall: three two-bay compartments for the skill groups
   ...bookshelf(),

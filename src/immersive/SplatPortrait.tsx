@@ -4,7 +4,7 @@ import { AdditiveBlending, BufferAttribute, BufferGeometry, ShaderMaterial, Vect
 import vertexShader from './splat.vert?raw'
 import fragmentShader from './splat.frag?raw'
 import { useMouseWorld } from './useMouseWorld'
-import { sampleEdges } from './roomLayout'
+import { HERO_Z, sampleEdges } from './roomLayout'
 import type { ScrollProgress } from './useScrollProgress'
 
 export interface PixelRect {
@@ -120,7 +120,7 @@ export function SplatPortrait({ count, cardRect, morphTarget, onMorphDone, progr
           uMorph: { value: cardRect ? 0 : 1 },
           uAssemble: { value: 0 },
           uFade: { value: 1 },
-          uSize: { value: 30 },
+          uSize: { value: 30 * (HERO_Z / 6) },
           uPixelRatio: { value: 1 },
           uRect: { value: new Vector4() },
           uPortrait: { value: [1, 0, 0] },

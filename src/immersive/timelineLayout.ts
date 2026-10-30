@@ -6,10 +6,10 @@ export const LINE_Z = 0.55
 export const BOARD_W = 1.0
 export const BOARD_H = 0.68
 export const BOARD_Y = -0.7
-export const BOARD_Z = -0.05
-const BOARD_SPACING = 1.2
+export const BOARD_Z = -0.1
+const BOARD_SPACING = 1.45
 /** The row sits left of the room's centre, clear of the side-project gallery along the right wall. */
-const CENTER_X = -0.6
+const CENTER_X = -0.8
 
 function yearOf(date: string) {
   const [y, m] = date.split('-').map(Number)
@@ -32,8 +32,8 @@ export const COMPANIES = experience
   .map((c, k, all) => ({ ...c, x: CENTER_X - ((all.length - 1) * BOARD_SPACING) / 2 + k * BOARD_SPACING }))
 
 /** Ends of the line: it runs a little past the outer boards, and grows with the number of companies. */
-export const LINE_X0 = COMPANIES[0].x - 0.6
-export const LINE_X1 = COMPANIES[COMPANIES.length - 1].x + 0.6
+export const LINE_X0 = COMPANIES[0].x - 0.65
+export const LINE_X1 = COMPANIES[COMPANIES.length - 1].x + 0.65
 
 export const YEAR0 = Math.floor(COMPANIES[0].start)
 export const YEAR1 = Math.floor(Math.max(...COMPANIES.map((c) => c.end))) + 1

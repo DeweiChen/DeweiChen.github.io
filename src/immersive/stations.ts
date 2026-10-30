@@ -1,7 +1,7 @@
 import type { TFunction } from 'i18next'
 import { isFree } from './freeMode'
-import { CERTS, DOOR, FRONT_Z, GALLERY } from './roomLayout'
-import { BOARD_Z, COMPANIES } from './timelineLayout'
+import { BACK_Z, CERTS, DOOR, FRAME, FRONT_Z, GALLERY, HERO_Z, SHELF } from './roomLayout'
+import { BOARD_Z, COMPANIES, LINE_Z } from './timelineLayout'
 
 type Vec3 = [number, number, number]
 
@@ -20,6 +20,8 @@ export interface Station {
   via?: { pos: Vec3; target: Vec3 }
 }
 
+const SHELF_ZC = (SHELF.z0 + SHELF.z1) / 2
+
 /**
  * The camera's tour of the room: a stop per resume section, or several for a
  * section that is walked through (Experience has one per company). The hero stop
@@ -27,38 +29,74 @@ export interface Station {
  */
 export const STATIONS: Station[] = [
   // Longer first leg: the name dissolves, the room is scanned, then we walk in.
-  { id: 'hero', pos: [0, 0, 6], target: [0, 0, -4], span: 2, fit: [0, 0], map: [0, FRONT_Z + 0.5] },
+  { id: 'hero', pos: [0, 0, HERO_Z], target: [0, 0, BACK_Z], span: 2, fit: [0, 0], map: [0, FRONT_Z + 0.6] },
   // Picture frame above the sofa.
-  { id: 'about', pos: [-1.25, 0.62, -1.5], target: [-1.4, 0.72, -4], span: 1.2, fit: [2.1, 1.45], map: [-1.4, -3.6] },
+  {
+    id: 'about',
+    pos: [FRAME.center[0] + 0.15, 0.62, BACK_Z + 2.8],
+    target: [FRAME.center[0], FRAME.center[1], BACK_Z],
+    span: 1.2,
+    fit: [2.3, 1.6],
+    map: [FRAME.center[0], BACK_Z + 0.4],
+  },
   // Bookshelf on the right wall, framed low enough to take in the bottom keepsake row.
-  { id: 'bookshelf', pos: [-0.2, 0.1, -1.1], target: [2.7, 0.0, -1.6], span: 1.2, fit: [2.2, 2.7], map: [2.9, -1.6] },
+  {
+    id: 'bookshelf',
+    pos: [SHELF.x - 3.4, 0.1, SHELF_ZC + 0.5],
+    target: [SHELF.x - 0.25, 0.0, SHELF_ZC],
+    span: 1.2,
+    fit: [2.4, 2.85],
+    map: [SHELF.x - 0.05, SHELF_ZC],
+  },
   // Experience: a walk along the floor timeline, one stop in front of each company's board.
   ...COMPANIES.map(
     (c, k): Station => ({
       id: 'experience',
       // Stand a little behind in time (to the left) so the line runs off into the future.
-      pos: [c.x - 0.65, -0.2, 2.4],
-      target: [c.x + 0.05, -1.0, BOARD_Z + 0.2],
+      pos: [c.x - 0.65, -0.15, LINE_Z + 2.1],
+      target: [c.x + 0.05, -0.95, BOARD_Z + 0.2],
       span: k === COMPANIES.length - 1 ? 1.2 : 1,
-      fit: [1.15, 1.7],
-      map: [c.x, 0.3],
+      fit: [1.3, 1.85],
+      map: [c.x, BOARD_Z + 0.35],
     }),
   ),
   // Side projects: a walk along the front of the right wall, one stop in front of each exhibit.
   ...GALLERY.zs.map(
     (z, k): Station => ({
       id: 'sideProjects',
-      pos: [GALLERY.wallX - 3.1, -0.1, z],
-      target: [GALLERY.wallX, -0.4, z],
+      pos: [GALLERY.wallX - 3.4, -0.08, z],
+      target: [GALLERY.wallX, -0.38, z],
       span: k === GALLERY.zs.length - 1 ? 1.2 : 1,
-      fit: [1.45, 2.15],
+      fit: [1.6, 2.3],
       map: [GALLERY.wallX - 0.3, z],
+      ...(k === GALLERY.zs.length - 1
+        ? {
+            via: {
+              pos: [0.4, 0.1, (z + CERTS.z) / 2],
+              target: [GALLERY.wallX, 0.1, (z + CERTS.z) / 2 - 1.0],
+            },
+          }
+        : {}),
     }),
   ),
   // Certificates on the right wall, lit by the lamp.
-  { id: 'education', pos: [0.9, 0.3, -2.75], target: [CERTS.x, 0.29, CERTS.z], span: 1.2, fit: [0.95, 1.4], map: [2.9, CERTS.z] },
+  {
+    id: 'education',
+    pos: [CERTS.x - 2.4, 0.32, CERTS.z + 0.3],
+    target: [CERTS.x, 0.32, CERTS.z],
+    span: 1.2,
+    fit: [1.1, 1.55],
+    map: [CERTS.x - 0.2, CERTS.z],
+  },
   // Left wall: the contact panel and the door out.
-  { id: 'contact', pos: [0.3, -0.1, -1.3], target: [DOOR.x, -0.45, -1.47], span: 1, fit: [2.35, 2.2], map: [-3.0, -1.47] },
+  {
+    id: 'contact',
+    pos: [DOOR.x + 3.8, -0.08, DOOR.z1 + 0.35],
+    target: [DOOR.x, -0.42, DOOR.z1 + 0.18],
+    span: 1,
+    fit: [2.5, 2.35],
+    map: [DOOR.x + 0.25, DOOR.z1 + 0.18],
+  },
 ]
 
 /** Scroll offset (in viewport heights) at which each station is reached. */

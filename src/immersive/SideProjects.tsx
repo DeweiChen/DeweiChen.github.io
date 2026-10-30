@@ -3,7 +3,7 @@ import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { useTranslation } from 'react-i18next'
 import { BoxGeometry, DoubleSide, EdgesGeometry, MeshStandardMaterial, type Group, type Plane } from 'three'
 import { useResume, type Resume } from '@/i18n/useResume'
-import { paintAppScreen, SCREEN_IMAGES } from './appScreens'
+import { paintAppScreen } from './appScreens'
 import { CYAN, MUTED, panelBackground, TEXT, type PanelLayout } from './panel'
 import { Reader } from './Reader'
 import { shownWhenFree } from './freeMode'
@@ -40,23 +40,17 @@ const smoothstep = (a: number, b: number, x: number) => {
   return t * t * (3 - 2 * t)
 }
 
-/** Real app icons under public/, keyed by project id; a drawn glyph stands in until one loads. */
-const APP_ICONS: Record<string, string> = {
-  smartHome: `${import.meta.env.BASE_URL}screens/home-assistant-icon.png`,
-  toiletFinder: `${import.meta.env.BASE_URL}screens/toilet-finder-icon.png`,
-  ovoy: `${import.meta.env.BASE_URL}screens/ovoy-icon.png`,
-}
-
-/** Every app icon, loaded once; missing ones are absent until they arrive. */
-function useAppIcons() {
+/** Every app icon configured on `sideProjects`, loaded once; missing ones are absent until they arrive. */
+function useAppIcons(projects: Project[]) {
   const [icons, setIcons] = useState<Record<string, HTMLImageElement>>({})
   useEffect(() => {
-    for (const [id, src] of Object.entries(APP_ICONS)) {
+    for (const p of projects) {
+      if (!p.icon) continue
       const el = new Image()
-      el.onload = () => setIcons((m) => ({ ...m, [id]: el }))
-      el.src = src
+      el.onload = () => setIcons((m) => (m[p.id] ? m : { ...m, [p.id]: el }))
+      el.src = p.icon
     }
-  }, [])
+  }, [projects])
   return icons
 }
 
@@ -106,7 +100,7 @@ function drawGlyph(ctx: CanvasRenderingContext2D, id: string, x: number, y: numb
     ctx.beginPath()
     ctx.arc(cx, cy - w * 0.08, w * 0.08, 0, Math.PI * 2)
     ctx.fill()
-  } else {
+  } else if (id === 'ovoy') {
     // Four-point sparkle.
     const r = w * 0.3
     ctx.moveTo(cx, cy - r)
@@ -115,6 +109,19 @@ function drawGlyph(ctx: CanvasRenderingContext2D, id: string, x: number, y: numb
     ctx.quadraticCurveTo(cx, cy, cx - r, cy)
     ctx.quadraticCurveTo(cx, cy, cx, cy - r)
     ctx.fill()
+  } else {
+    // Generic app window / terminal glyph for new projects without a custom icon.
+    const bw = w * 0.54
+    const bh = w * 0.44
+    ctx.roundRect(cx - bw / 2, cy - bh / 2, bw, bh, w * 0.08)
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(cx - bw * 0.2, cy - bh * 0.08)
+    ctx.lineTo(cx - bw * 0.04, cy + bh * 0.08)
+    ctx.lineTo(cx - bw * 0.2, cy + bh * 0.24)
+    ctx.moveTo(cx + bw * 0.04, cy + bh * 0.24)
+    ctx.lineTo(cx + bw * 0.22, cy + bh * 0.24)
+    ctx.stroke()
   }
 }
 
@@ -151,28 +158,44 @@ function Prop({ id, active }: { id: string; active: () => boolean }) {
       </>
     )
   }
-  if (id === 'toiletFinder') return null
-  // Petals drifting round the phone.
-  return (
-    <group ref={group}>
-      {Array.from({ length: 9 }, (_, k) => {
-        const a = (k / 9) * Math.PI * 2
-        return (
-          <mesh key={k} position={[Math.cos(a) * 0.22, Math.sin(a * 3) * 0.12, Math.sin(a) * 0.2]} rotation={[a, a * 2, 0]}>
-            <circleGeometry args={[0.014, 5]} />
-            <meshBasicMaterial color="#ffc3d8" side={DoubleSide} />
-          </mesh>
-        )
-      })}
-    </group>
-  )
+  if (id === 'ovoy') {
+    // Petals drifting round the phone.
+    return (
+      <group ref={group}>
+        {Array.from({ length: 9 }, (_, k) => {
+          const a = (k / 9) * Math.PI * 2
+          return (
+            <mesh key={k} position={[Math.cos(a) * 0.22, Math.sin(a * 3) * 0.12, Math.sin(a) * 0.2]} rotation={[a, a * 2, 0]}>
+              <circleGeometry args={[0.014, 5]} />
+              <meshBasicMaterial color="#ffc3d8" side={DoubleSide} />
+            </mesh>
+          )
+        })}
+      </group>
+    )
+  }
+  return null
 }
 
 /** The app itself: a phone showing its screen, turning gently from side to side. */
-function Phone({ id, reveal, glow, active }: { id: string; reveal: () => number; glow: () => number; active: () => boolean }) {
+function Phone({
+  project,
+  reveal,
+  glow,
+  active,
+}: {
+  project: Project
+  reveal: () => number
+  glow: () => number
+  active: () => boolean
+}) {
   const group = useRef<Group>(null)
-  const img = useImage(SCREEN_IMAGES[id])
-  const map = useCanvasTexture(SPX, SPY, (ctx) => paintAppScreen(ctx, id, SPX, SPY, img), [id, img])
+  const img = useImage(project.screen)
+  const map = useCanvasTexture(SPX, SPY, (ctx) => paintAppScreen(ctx, project.id, SPX, SPY, img, project.name), [
+    project.id,
+    project.name,
+    img,
+  ])
   useFrame(({ clock, invalidate }) => {
     if (!active()) return
     group.current!.rotation.y = Math.sin(clock.elapsedTime * 0.5) * 0.35
@@ -192,7 +215,7 @@ function Phone({ id, reveal, glow, active }: { id: string; reveal: () => number;
 /** Wall text: name, period and description, big enough to read from the stop. */
 function useWallLabel(project: Project, index: number) {
   const { t } = useTranslation()
-  const icon = useImage(APP_ICONS[project.id]) ?? undefined
+  const icon = useImage(project.icon) ?? undefined
   return useCanvasTexture(
     LPX,
     LPY,
@@ -372,7 +395,7 @@ function Exhibit({
           <meshBasicMaterial color={CYAN} transparent opacity={0.12} />
         </mesh>
         <group position={[0, TOP + GLASS.h / 2 + 0.03, 0]}>
-          <Phone id={project.id} reveal={shown} glow={glow} active={active} />
+          <Phone project={project} reveal={shown} glow={glow} active={active} />
           <Prop id={project.id} active={active} />
         </group>
         <group position={[0, TOP + GLASS.h / 2, 0]}>
@@ -471,7 +494,7 @@ export function SideProjects({ progress }: { progress: RefObject<ScrollProgress>
   const { t } = useTranslation()
   const { sideProjects } = useResume()
   const clip = useScanClip(progress)
-  const icons = useAppIcons()
+  const icons = useAppIcons(sideProjects)
   const [selected, setSelected] = useState<number | null>(null)
   const [last, setLast] = useState<number | null>(null)
   if (selected !== null && selected !== last) setLast(selected)

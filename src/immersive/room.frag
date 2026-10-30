@@ -17,7 +17,7 @@ void main() {
 
   vec3 n = normalize(vNormal);
   float light = 0.45 + 0.55 * max(dot(n, normalize(vec3(0.35, 0.8, 0.55))), 0.0);
-  vec3 shell = mix(vec3(0.012, 0.013, 0.025), vec3(0.022, 0.022, 0.042), smoothstep(-1.6, 1.9, vPos.y));
+  vec3 shell = mix(vec3(0.012, 0.013, 0.025), vec3(0.022, 0.022, 0.042), smoothstep(-1.6, 2.35, vPos.y));
   vec3 base = mix(shell, vec3(0.04, 0.035, 0.075), vTone) * light;
 
   vec3 accent = mix(CYAN, VIOLET, clamp((vPos.x - uWidth.x) / (uWidth.y - uWidth.x), 0.0, 1.0));

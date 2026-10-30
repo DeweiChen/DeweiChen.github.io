@@ -61,7 +61,14 @@ export function useResume() {
           }
         }),
       })),
-      sideProjects: sideProjects.map((p) => ({ ...m.sideProjects[p.id as keyof Messages['sideProjects']], id: p.id, period: period(p.period), link: p.link })),
+      sideProjects: sideProjects.map((p) => ({
+        ...m.sideProjects[p.id as keyof Messages['sideProjects']],
+        id: p.id,
+        period: period(p.period),
+        link: p.link,
+        icon: p.icon ? `${import.meta.env.BASE_URL}${p.icon}` : undefined,
+        screen: p.screen ? `${import.meta.env.BASE_URL}${p.screen}` : undefined,
+      })),
       education: education.map((e) => ({ ...m.education[e.id as keyof Messages['education']], id: e.id, degree: e.degree, period: period(e.period) })),
     }
   }, [i18n, lang])

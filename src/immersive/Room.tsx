@@ -5,7 +5,7 @@ import vertexShader from './room.vert?raw'
 import fragmentShader from './room.frag?raw'
 import wireFragmentShader from './roomWire.frag?raw'
 import { isFree, WALK_EVENT } from './freeMode'
-import { buildRoomEdges, buildRoomGeometry, FLOOR_Y, scanHeight } from './roomLayout'
+import { buildRoomEdges, buildRoomGeometry, FLOOR_Y, LIVING, scanHeight } from './roomLayout'
 import type { ScrollProgress } from './useScrollProgress'
 
 const smoothstep = (a: number, b: number, x: number) => {
@@ -22,7 +22,7 @@ export function Room({ progress, lowEnd }: { progress: RefObject<ScrollProgress>
   const edges = useMemo(() => buildRoomEdges(lowEnd), [lowEnd])
 
   const [solid, wire] = useMemo(() => {
-    const width = new Vector2(-3.2, 3.2)
+    const width = new Vector2(LIVING.x0, LIVING.x1)
     return [
       new ShaderMaterial({
         vertexShader,

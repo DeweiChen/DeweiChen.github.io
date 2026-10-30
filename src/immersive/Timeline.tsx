@@ -33,7 +33,7 @@ const LOGOS: Record<string, string> = {
 const TILE_LOGOS = new Set(['freelance'])
 
 // Floor decal covering the line, its year ticks and the connectors up to the boards.
-const DECAL = { x0: LINE_X0 - 0.1, x1: LINE_X1 + 0.1, z0: -0.2, z1: 0.9, px: 4096 }
+const DECAL = { x0: LINE_X0 - 0.1, x1: LINE_X1 + 0.1, z0: BOARD_Z - 0.15, z1: 0.9, px: 4096 }
 const DECAL_PY = Math.round((DECAL.px * (DECAL.z1 - DECAL.z0)) / (DECAL.x1 - DECAL.x0))
 const decalX = (x: number) => ((x - DECAL.x0) / (DECAL.x1 - DECAL.x0)) * DECAL.px
 const decalY = (z: number) => ((z - DECAL.z0) / (DECAL.z1 - DECAL.z0)) * DECAL_PY

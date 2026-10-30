@@ -103,10 +103,26 @@ export const experience: CompanyData[] = [
   },
 ]
 
-export const sideProjects: { id: string; period: Period; link?: string }[] = [
-  { id: 'smartHome', period: { start: '2022', end: null } },
-  { id: 'toiletFinder', period: { start: '2023' } },
-  { id: 'ovoy', period: { start: '2016' }, link: 'https://studioxin.com/demo/ovoy/app.html' },
+export interface SideProjectData {
+  id: string
+  period: Period
+  link?: string
+  /** Optional app icon path under public/ (e.g. "screens/my-app-icon.png"). Falls back to a generated glyph. */
+  icon?: string
+  /** Optional screenshot path under public/ (e.g. "screens/my-app.jpg"). Falls back to a painted screen. */
+  screen?: string
+}
+
+export const sideProjects: SideProjectData[] = [
+  { id: 'smartHome', period: { start: '2022', end: null }, icon: 'screens/home-assistant-icon.png' },
+  { id: 'toiletFinder', period: { start: '2023' }, icon: 'screens/toilet-finder-icon.png', screen: 'screens/toilet-finder.jpg' },
+  {
+    id: 'ovoy',
+    period: { start: '2016' },
+    link: 'https://studioxin.com/demo/ovoy/app.html',
+    icon: 'screens/ovoy-icon.png',
+    screen: 'screens/ovoy.jpg',
+  },
 ]
 
 /** Degree names stay in English in every language. */

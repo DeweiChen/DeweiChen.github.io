@@ -269,14 +269,67 @@ const SCREENS: Record<string, (ctx: CanvasRenderingContext2D, w: number, h: numb
   ovoy: wallpaper,
 }
 
-/** Real screenshots under public/, keyed by project id. */
-export const SCREEN_IMAGES: Record<string, string> = {
-  toiletFinder: `${import.meta.env.BASE_URL}screens/toilet-finder.jpg`,
-  ovoy: `${import.meta.env.BASE_URL}screens/ovoy.jpg`,
+/** Generic dark-mode app screen stand-in for side projects without a screenshot or custom canvas painter. */
+function defaultScreen(ctx: CanvasRenderingContext2D, w: number, h: number, title = 'App') {
+  ctx.fillStyle = '#0d101c'
+  ctx.fillRect(0, 0, w, h)
+  statusBar(ctx, w)
+
+  ctx.fillStyle = '#e8ebf5'
+  ctx.font = `700 38px ${SANS}`
+  ctx.fillText(title, 36, 86, w - 72)
+
+  // Hero card with brand gradient.
+  const heroY = 156
+  const heroH = 260
+  const grad = ctx.createLinearGradient(36, heroY, w - 36, heroY + heroH)
+  grad.addColorStop(0, 'rgba(46, 184, 242, 0.28)')
+  grad.addColorStop(1, 'rgba(148, 76, 250, 0.28)')
+  ctx.fillStyle = grad
+  ctx.beginPath()
+  ctx.roundRect(36, heroY, w - 72, heroH, 24)
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(127, 216, 245, 0.35)'
+  ctx.lineWidth = 3
+  ctx.stroke()
+
+  ctx.fillStyle = '#7fd8f5'
+  ctx.fillRect(68, heroY + 42, 120, 14)
+  ctx.fillStyle = 'rgba(232, 235, 245, 0.85)'
+  ctx.fillRect(68, heroY + 78, w - 180, 22)
+  ctx.fillStyle = 'rgba(201, 205, 224, 0.45)'
+  ctx.fillRect(68, heroY + 118, w - 240, 16)
+  ctx.fillRect(68, heroY + 148, w - 290, 16)
+
+  // Feature list cards below.
+  let y = heroY + heroH + 36
+  for (let i = 0; i < 4; i++) {
+    if (y + 116 > h - 48) break
+    ctx.fillStyle = '#171c2e'
+    ctx.beginPath()
+    ctx.roundRect(36, y, w - 72, 108, 18)
+    ctx.fill()
+    ctx.fillStyle = i % 2 === 0 ? '#2eb8f2' : '#944cfa'
+    ctx.beginPath()
+    ctx.roundRect(60, y + 26, 56, 56, 14)
+    ctx.fill()
+    ctx.fillStyle = 'rgba(232, 235, 245, 0.8)'
+    ctx.fillRect(140, y + 32, (w - 220) * (0.75 - i * 0.08), 18)
+    ctx.fillStyle = 'rgba(141, 147, 171, 0.5)'
+    ctx.fillRect(140, y + 62, (w - 220) * (0.55 + (i % 2) * 0.15), 14)
+    y += 128
+  }
 }
 
 /** Paints project `id`'s app screen to fill a w x h canvas, from `img` when it has loaded. */
-export function paintAppScreen(ctx: CanvasRenderingContext2D, id: string, w: number, h: number, img?: HTMLImageElement | null) {
+export function paintAppScreen(
+  ctx: CanvasRenderingContext2D,
+  id: string,
+  w: number,
+  h: number,
+  img?: HTMLImageElement | null,
+  title?: string,
+) {
   ctx.save()
   ctx.beginPath()
   ctx.roundRect(0, 0, w, h, 36)
@@ -286,7 +339,9 @@ export function paintAppScreen(ctx: CanvasRenderingContext2D, id: string, w: num
     const s = Math.max(w / img.width, h / img.height)
     ctx.drawImage(img, (w - img.width * s) / 2, (h - img.height * s) / 2, img.width * s, img.height * s)
   } else {
-    ;(SCREENS[id] ?? wallpaper)(ctx, w, h)
+    const painter = SCREENS[id]
+    if (painter) painter(ctx, w, h)
+    else defaultScreen(ctx, w, h, title)
   }
   ctx.restore()
 }
